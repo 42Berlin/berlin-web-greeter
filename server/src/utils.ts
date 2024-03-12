@@ -6,7 +6,6 @@ import ipRangeCheck from 'ip-range-check';
 export const EXAM_MODE_ENABLED = process.env.EXAM_MODE_ENABLED === 'true' || false;
 
 export const HOSTNAME_CLUSTER_LETTER = process.env.HOSTNAME_CLUSTER_LETTER ?? 'f'; // in most campuses, it'd be 'c'
-export const HOSTNAME_ROW_LETTER = process.env.HOSTNAME_ROW_LETTER ?? 'r';
 export const HOSTNAME_SEAT_LETTER = process.env.HOSTNAME_SEAT_LETTER ?? 's';
 export const HOSTNAME_SUFFIX = process.env.HOSTNAME_SUFFIX ?? '.codam.nl'; // in most campuses, it'd be empty
 
@@ -22,6 +21,9 @@ export const ipToHostName = function(ip: string): string | null {
 	if (ip.includes(':')) {
 		return null;
 	}
+	if (ip === '10.11.1.42') {
+		return `dump${HOSTNAME_SUFFIX}`;
+	}
 	const ipParts = ip.split('.');
 	if (ipParts.length !== 4) {
 		return null;
@@ -36,25 +38,41 @@ export const ipToHostName = function(ip: string): string | null {
 	if (parsedParts[0] !== 10) {
 		return null;
 	}
-	const f = parsedParts[1] - 10;
-	const r = parsedParts[2];
-	const s = parsedParts[3];
-	return `${HOSTNAME_CLUSTER_LETTER}${f}${HOSTNAME_ROW_LETTER}${r}${HOSTNAME_SEAT_LETTER}${s}${HOSTNAME_SUFFIX}`;
+	// convert to hostname
+	const floor = parsedParts[1] - 11;
+	const part = parsedParts[2] > 200 ? 'c' : parsedParts[2] > 100 ? 'b' : 'a';
+	const row = parsedParts[2].toString().slice(-2);
+	const seat = parsedParts[3];
+
+	return `${HOSTNAME_CLUSTER_LETTER}${floor}${part}${row}${HOSTNAME_SEAT_LETTER}${seat}${HOSTNAME_SUFFIX}`;
 };
 
 export const hostNameToIp = function(hostName: string): string | null {
-	const regex = new RegExp(`^${HOSTNAME_CLUSTER_LETTER}(\\d+)${HOSTNAME_ROW_LETTER}(\\d+)${HOSTNAME_SEAT_LETTER}(\\d+)${HOSTNAME_SUFFIX}$`);
+	if (hostName === `dump${HOSTNAME_SUFFIX}`) {
+		return '10.11.1.42'
+	}
+	const regex = new RegExp(`^${HOSTNAME_CLUSTER_LETTER}(\\d+)([abc])(\\d{2})${HOSTNAME_SEAT_LETTER}(\\d+)${HOSTNAME_SUFFIX}$`);
 	const match = hostName.match(regex);
 	if (!match) {
 		return null;
 	}
-	const f = parseInt(match[1]);
-	const r = parseInt(match[2]);
-	const s = parseInt(match[3]);
-	if (isNaN(f) || isNaN(r) || isNaN(s)) {
+
+	const floor = parseInt(match[1]);
+	const part = match[2];
+	let row = parseInt(match[3]);
+	const seat = parseInt(match[4]);
+
+	if (isNaN(floor) || isNaN(row) || isNaN(seat)) {
 		return null;
 	}
-	return `10.${f + 10}.${r}.${s}`;
+
+	if (part === 'b') {
+		row += 100;
+	} else if (part === 'c') {
+		row += 200;
+	}
+
+	return `10.${floor + 11}.${row}.${seat}`;
 }
 
 export const getIpFromRequest = function(req: express.Request): string | null {
