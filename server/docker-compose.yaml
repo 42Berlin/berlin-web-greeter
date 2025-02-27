@@ -23,6 +23,7 @@ services:
       - "443:443"
     volumes:
       - ./configs/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./configs/certs:/etc/nginx/certs
+      - /etc/ssl/42berlin.de.crt:/etc/nginx/certs/42berlin.de.crt
+      - /etc/ssl/42berlin.de.key:/etc/nginx/certs/42berlin.de.key
     depends_on:
       - web-greeter-server
