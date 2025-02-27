@@ -22,7 +22,8 @@ export const ipToHostName = function(ip: string): string | null {
 		return null;
 	}
 	if (ip === '10.11.1.42') {
-		return `dump${HOSTNAME_SUFFIX}`;
+		return `c4a7c5${HOSTNAME_SUFFIX}`; // temp changed for testing
+		//return `dump${HOSTNAME_SUFFIX}`;
 	}
 	const ipParts = ip.split('.');
 	if (ipParts.length !== 4) {
@@ -48,8 +49,10 @@ export const ipToHostName = function(ip: string): string | null {
 };
 
 export const hostNameToIp = function(hostName: string): string | null {
-	if (hostName === `dump${HOSTNAME_SUFFIX}`) {
-		return '10.11.1.42'
+		if (hostName === `dump${HOSTNAME_SUFFIX}`) {
+			hostName = `10.15.7.5${HOSTNAME_SUFFIX}`
+			return '10.15.7.5' // temporary changed for 4a computer for testing
+			//return '10.11.1.42'
 	}
 	const regex = new RegExp(`^${HOSTNAME_CLUSTER_LETTER}(\\d+)([abc])(\\d{2})${HOSTNAME_SEAT_LETTER}(\\d+)${HOSTNAME_SUFFIX}$`);
 	const match = hostName.match(regex);
