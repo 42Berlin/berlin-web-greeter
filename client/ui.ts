@@ -71,7 +71,7 @@ export class UI {
 		});
 		// Set message now
 		if (data.dataJson !== undefined) {
-			this.setMessage(data.dataJson.message);
+			this.setMessage(data.dataJson.message);  
 		}
 
 		this._wallpaper = new WallpaperUI(this._isLockScreen);

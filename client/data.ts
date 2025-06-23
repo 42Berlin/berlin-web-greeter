@@ -119,7 +119,6 @@ export class Data {
 
 		// Get hostname from LightDM
 		this.hostname = lightdm.hostname;
-
 		// Set up images
 		this.loginScreenWallpaper = new GreeterImage(PATH_WALLPAPER_LOGIN);
 		this.userLockScreenWallpaper = new GreeterImage(PATH_WALLPAPER_LOCK_USER);
@@ -179,10 +178,37 @@ export class Data {
 					data.message = "";
 				}
 				this._dataJson = data;
+				fetch('/usr/share/42/berlin.conf')
+					.then(resp => resp.text())
+					.then(confText => {
+						const lines = confText.split('\n');
+						for (const line of lines) {
+							const trimmed = line.trim();
+							if (trimmed.startsWith('GREETER_MSG=')) {
+								let msg = trimmed.substring('GREETER_MSG='.length).trim();
+								if ((msg.startsWith('"') && msg.endsWith('"')) || (msg.startsWith("'") && msg.endsWith("'"))) {
+									msg = msg.slice(1, -1);
+								}
+								this._dataJson!.message = msg;
+								break;
+							}
+						}
+
+						for (const listener of this._dataChangeListeners) {
+							listener(this._dataJson);
+						}
+					})
+					.catch(err => {
+						console.warn("Error fetching berlin.conf", err);
+						
+						for (const listener of this._dataChangeListeners) {
+							listener(this._dataJson);
+						}
+					});
 				// Emit data change event to all listeners
-				for (const listener of this._dataChangeListeners) {
-					listener(this._dataJson);
-				}
+				// for (const listener of this._dataChangeListeners) {
+				// 	listener(this._dataJson);
+				// }
 			})
 			.catch(error => {
 				if (window.ui) {

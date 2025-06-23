@@ -20,7 +20,7 @@ A greeter theme for [nody-greeter](https://github.com/JezerM/nody-greeter)/web-g
 
 
 ## Screenshots
-![Login screen](promo/login-screen.png)
+![Login screen](promo/login-screen-berlin.png)
 ![Lock screen](promo/lock-screen.png)
 
 

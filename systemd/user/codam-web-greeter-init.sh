@@ -4,7 +4,7 @@
 set -e
 
 # Do not run this script for the following users
-SKIPPED_USERS="lightdm exam checkin event"
+SKIPPED_USERS="lightdm exam checkin event bocal root"
 if [[ $SKIPPED_USERS =~ (^|[[:space:]])$USER($|[[:space:]]) ]]; then
 	/usr/bin/echo "Skipping ignored user $USER"
 	exit 0
