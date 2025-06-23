@@ -96,6 +96,7 @@ export interface DataJson {
 	exams_for_host: ExamForHost[];
 	fetch_time: string;
 	message: string;
+	message_tech: string;
 }
 
 
@@ -119,7 +120,6 @@ export class Data {
 
 		// Get hostname from LightDM
 		this.hostname = lightdm.hostname;
-
 		// Set up images
 		this.loginScreenWallpaper = new GreeterImage(PATH_WALLPAPER_LOGIN);
 		this.userLockScreenWallpaper = new GreeterImage(PATH_WALLPAPER_LOCK_USER);
@@ -165,29 +165,56 @@ export class Data {
 	}
 
 	private _refetchDataJson(): void {
-		fetch(PATH_DATA_JSON)
-			.then(response => response.json())
-			.then(data => {
-				console.log("Fetched data.json", data);
-				if ("error" in data) {
-					console.warn("data.json response contains an error", data);
-					window.ui.setDebugInfo(`data.json response contains an error: ${data.error}`);
-					return;
-				}
-				// Fallback for missing message field in older versions of data.json
-				if (!("message" in data)) {
-					data.message = "";
-				}
-				this._dataJson = data;
-				// Emit data change event to all listeners
-				for (const listener of this._dataChangeListeners) {
-					listener(this._dataJson);
-				}
-			})
-			.catch(error => {
-				if (window.ui) {
-					window.ui.setDebugInfo(`Error fetching data.json: ${error}`);
-				}
-			});
+	
+	fetch(PATH_DATA_JSON)
+		.then(response => response.json())
+		.then(data => {
+			console.log("Fetched data.json", data);
+			if ("error" in data) {
+				console.warn("data.json response contains an error", data);
+				window.ui.setDebugInfo(`data.json response contains an error: ${data.error}`);
+				return;
+			}
+
+			if (!("message" in data)) {
+				data.message = "";
+			}
+			if (!("message_tech" in data)) {
+				data.message_tech = "";
+			}
+			this._dataJson = data;
+
+			return fetch('/usr/share/42/berlin.conf')
+				.then(resp => resp.text())
+				.then(confText => {
+					const lines = confText.split('\n');
+					let greeterMsg = '';
+					let bubbleMsg = '';
+
+					for (const line of lines) {
+						const trimmed = line.trim();
+						if (trimmed.startsWith('GREETER_MSG=')) {
+							greeterMsg = trimmed.split('=')[1].trim().replace(/^['"]|['"]$/g, '');
+						} else if (trimmed.startsWith('BUBBLE_MSG=')) {
+							bubbleMsg = trimmed.split('=')[1].trim().replace(/^['"]|['"]$/g, '');
+						}
+					}
+					this._dataJson!.message = bubbleMsg;
+					this._dataJson!.message_tech = greeterMsg;
+				})
+				.catch(err => {
+					console.warn("Error fetching berlin.conf", err);
+				});
+		})
+		.then(() => {
+			for (const listener of this._dataChangeListeners) {
+				listener(this._dataJson);
+			}
+		})
+		.catch(error => {
+			if (window.ui) {
+				window.ui.setDebugInfo(`Error fetching data.json: ${error}`);
+			}
+		});
 	}
 }

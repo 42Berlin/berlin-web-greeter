@@ -22,12 +22,14 @@ export class UI {
 	private _calendar: CalendarUI;
 	private _logo: HTMLImageElement;
 	private _message: HTMLElement;
+	private _message_tech: HTMLElement;
 	private _scalingFactor: number = 1;
 
 	public constructor(data: Data, auth: Authenticator) {
 		this._infoBars = new InfoBarsUI();
 		this._logo = document.getElementById('logo') as HTMLImageElement;
 		this._message = document.getElementById('message') as HTMLElement;
+		this._message_tech = document.getElementById('message_tech') as HTMLElement;
 
 		// Set up DPI scaling
 		this.applyHiDpiScaling();
@@ -64,14 +66,17 @@ export class UI {
 		}
 
 		// Register message change listener
-		data.addDataChangeListener((data: DataJson | undefined) => {
-			if (data !== undefined) {
-				this.setMessage(data.message);
+		data.addDataChangeListener((newData: DataJson | undefined) => {
+			if (newData !== undefined) {
+				this.setMessage(newData.message);
+				this.setMessageTech(newData.message_tech);
 			}
 		});
+
 		// Set message now
 		if (data.dataJson !== undefined) {
-			this.setMessage(data.dataJson.message);
+			this.setMessage(data.dataJson.message);  
+			this.setMessageTech(data.dataJson.message_tech);
 		}
 
 		this._wallpaper = new WallpaperUI(this._isLockScreen);
@@ -108,8 +113,22 @@ export class UI {
 		this._message.innerHTML = message;
 	}
 
+	public setMessageTech(message: string): void {
+		message = message.replace(/(<([^>]+)>)/gi, "");
+		message = message.replace(/\n/g, '<br>');
+		message = message.replace(/\*(.*?)\*/g, '<b>$1</b>');
+		message = message.replace(/_(.*?)_/g, '<i>$1</i>');
+		message = message.replace(/  +/g, '&nbsp;&nbsp;');
+
+		this._message_tech.innerHTML = message;
+	}
+
 	public getMessage(): string {
 		return this._message.innerText;
+	}
+
+	public getMessageTech(): string {
+		return this._message_tech.innerText;
 	}
 
 	/**

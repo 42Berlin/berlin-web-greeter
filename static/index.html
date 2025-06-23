@@ -10,12 +10,16 @@
 		<title>Codam Theme for nody-greeter</title>
 	</head>
 	<body>
+		<iframe id="game-frame" src="game/index.html" tabindex="0"></iframe>
+
 		<div id="blur-filter" style="display: none;"></div>
+
+		<div id="dark-filter"></div>
 
 		<!-- Header for general info -->
 		<header>
 			<div class="horibar-left">
-				<span id="info-hostname">hostname.codam.nl</span>
+				<span id="info-hostname">hostname</span>
 			</div>
 			<div class="horibar-right">
 				<span id="info-network-icon">&#128423;</span>
@@ -23,6 +27,11 @@
 				<span id="info-clock">00:00:00</span>
 			</div>
 		</header>
+
+		<div id="offline-message" style="display: none; text-align: center;">
+			<div id="offline-placeholder"></div>
+			<p id="offline-text" style="color: red; font-weight: bold;">You are offline. Please check your connection.</p>
+		</div>
 
 		<!-- Logo (base64 string is an empty image) -->
 		<div id="logo-wrapper" class="logo-top-center">
@@ -56,10 +65,17 @@
 				<p id="exam-mode-start-timer">Click the arrow below to start your exam.</p>
 				<button type="submit" id="exam-mode-start-button" title="Start your exam">&#10149;</button>
 			</form>
-
+			
+			<!-- Exam mode form -->
+			<div id="message_tech"></div>
+			
 			<!-- Message -->
 			<div id="message-wrapper">
-				<div id="message"></div>
+				<div id="message-content">
+					<div id="image-placeholder"></div>
+					<div id="message"></div>
+					<div id="bg-placeholder"></div>
+				</div>
 			</div>
 		</main>
 

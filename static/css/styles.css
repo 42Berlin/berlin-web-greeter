@@ -75,11 +75,152 @@ body {
 }
 
 /* ***************************************** */
+/* Offline notification                      */
+/* ***************************************** */
+
+#offline-placeholder {
+    position:absolute;
+    top: 20px;
+    left: 1550px;
+    width: 192px;
+    height: 192px;
+    background-image: url('/usr/share/web-greeter/themes/codam/offline.gif');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+#offline-text {
+    position: absolute;
+    top: 450px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center; /* Optional */
+}
+
+/* ***************************************** */
+/* Offline game setup                        */
+/* ***************************************** */
+
+#dark-filter {
+	position: fixed;
+	z-index: 9998;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.8);
+	display: none;
+}
+
+#game-frame {
+    position: absolute;
+	border: none;
+    top: 0px;
+    left: 0px;
+    width: 1920px;
+    height: 1080px;
+    z-index: 9999;
+    visibility: hidden;  /* Initially hidden */
+}
+
+/* ***************************************** */
+/* Greeter Bubble message with image         */
+/* ***************************************** */
+
+#message-wrapper {
+    position: absolute;
+    bottom: 80px;
+    left: 100px;
+    width: 300px;
+    height: 200px;
+    display: flex;
+    align-items: flex-start;
+}
+
+#message-content {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    width: 100%;
+    position: relative;
+}
+
+#image-placeholder {
+    background-image: url('/usr/share/web-greeter/themes/codam/img.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-top: 50px;
+    margin-left: 50px;
+}
+
+#message {
+    text-shadow: var(--text-shadow);
+    color: var(--color-text-primary);
+    font-size: 14pt;
+    line-height: 1.2;
+    font-weight: 200;
+    width: 240px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: left;
+    position: absolute;
+    left: 175px;
+}
+
+#bg-placeholder {
+    position:absolute;
+    top: 0;
+    left: 0;
+    width: 450px;
+    height: 281px;
+    background-image: url('/usr/share/web-greeter/themes/codam/bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -1;
+}
+
+/* ***************************************** */
+/* Tech team is running updates message      */
+/* ***************************************** */
+
+#message_tech {
+    position: absolute;
+	color: red;
+    top: 650px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center; /* Optional */
+}
+
+/* ***************************************** */
 /* Header and footer                         */
 /* ***************************************** */
 
-header,
+header {
+	box-sizing: border-box;
+	width: 100%;
+	height: var(--header-footer-height);
+	padding: var(--padding) var(--padding);
+	backdrop-filter: var(--blur-bg-filter);
+	background-color: var(--bg-color-darken);
+	color: var(--color-text-secondary);
+	font-size: small;
+	text-shadow: var(--text-shadow);
+	white-space: nowrap;
+}
+
 footer {
+	display: none;
 	box-sizing: border-box;
 	width: 100%;
 	height: var(--header-footer-height);
@@ -120,6 +261,8 @@ footer span {
 #info-debug {
 	color: var(--color-text-error);
 }
+
+
 
 /* ***************************************** */
 /* Logo                                      */
@@ -329,17 +472,6 @@ form p {
 	font-size: small;
 	font-style: italic;
 	color: var(--color-text-secondary);
-}
-
-#message-wrapper {
-	height: 0; /* do not include in height calculation for main */
-}
-
-#message {
-	padding-top: calc(var(--padding) * 12);
-	text-shadow: var(--text-shadow);
-	color: var(--color-text-primary);
-	font-size: small;
 }
 
 @keyframes wiggle {

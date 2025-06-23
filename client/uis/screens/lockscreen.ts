@@ -165,7 +165,7 @@ export class LockScreenUI extends UIScreen {
 			return;
 		}
 
-		const logoutAfter = 42; // minutes
+		const logoutAfter = 90; // minutes
 		const lockedMinutesAgo = (Date.now() - this._lockedTime.getTime()) / 1000 / 60;
 		const timeRemaining = logoutAfter - lockedMinutesAgo;
 		if (timeRemaining <= 0.25) {

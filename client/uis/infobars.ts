@@ -39,16 +39,21 @@ export class InfoBarsUI {
 		this._infoElements.version.innerText = window.data.pkgName + " v" + window.data.pkgVersion;
 
 		// Populate hostname info
-		this._infoElements.hostname.innerText = window.data.hostname;
+		const hostname = window.data.hostname.endsWith(".42berlin.de") ? window.data.hostname.slice(0, -".42berlin.de".length) : window.data.hostname;
+		this._infoElements.hostname.innerText = hostname;
 
 		// Populate clock element
 		this._updateClock();
 		setInterval(() => this._updateClock(), 1000);
 
 		// Populate network icon
-		this._infoElements.networkIcon.innerHTML = (navigator.onLine ? '&#128423;' : ''); // Either "three-networked-computers" unicode symbol or nothing
-		window.addEventListener('online', () => this._infoElements.networkIcon.innerHTML = '&#128423;');
-		window.addEventListener('offline', () => this._infoElements.networkIcon.innerHTML = '');
+		this._infoElements.networkIcon.innerHTML = (navigator.onLine ? '<span>&#128423; ONLINE</span>' : '<span style="color: red;">&#128423; OFFLINE</span>');
+		window.addEventListener('online', () => {
+			this._infoElements.networkIcon.innerHTML = '<span>&#128423; ONLINE</span>';
+		});
+		window.addEventListener('offline', () => {
+			this._infoElements.networkIcon.innerHTML = '<span style="color: red;">&#128423; OFFLINE</span>';
+		});
 	}
 
 	private _updateClock(): void {
