@@ -66,12 +66,12 @@ export class UI {
 		// Register message change listener
 		data.addDataChangeListener((data: DataJson | undefined) => {
 			if (data !== undefined) {
-				this.setMessage(data.message);
+				// this.setMessage(data.message);
 			}
 		});
 		// Set message now
 		if (data.dataJson !== undefined) {
-			this.setMessage(data.dataJson.message);
+			//this.setMessage(data.dataJson.message);  
 		}
 
 		this._wallpaper = new WallpaperUI(this._isLockScreen);
