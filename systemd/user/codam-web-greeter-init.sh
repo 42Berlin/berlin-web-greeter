@@ -4,7 +4,7 @@
 set -e
 
 # Do not run this script for the following users
-SKIPPED_USERS="lightdm exam checkin event bocal root"
+SKIPPED_USERS="lightdm exam checkin event"
 if [[ $SKIPPED_USERS =~ (^|[[:space:]])$USER($|[[:space:]]) ]]; then
 	/usr/bin/echo "Skipping ignored user $USER"
 	exit 0
@@ -63,7 +63,7 @@ else
 fi
 
 # Remove existing user image in /tmp
-/usr/bin/rm -f "$TMP_AVATAR_PATH"
+/usr/bin/rm -f "$TMP_AVATAR_PATH" 
 
 # Copy user's .face file to /tmp
 if [ -f "$FACE_PATH" ]; then

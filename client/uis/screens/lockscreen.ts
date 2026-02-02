@@ -1,5 +1,5 @@
 import { Authenticator, AuthenticatorEvents } from "../../auth";
-import { LightDMUser, ThemeUtils } from "nody-greeter-types";
+import { LightDMUser, ThemeUtils, lightdm } from "nody-greeter-types";
 import { UIScreen, UILockScreenElements } from "../screen";
 import { UI } from "../../ui";
 
@@ -100,6 +100,16 @@ export class LockScreenUI extends UIScreen {
 		form.passwordInput.addEventListener('input', () => {
 			this._enableOrDisableSubmitButton();
 		});
+
+		// Add caps lock detection for password field (skip for exam mode)
+		if (!this._isExamMode) {
+			this._setupCapsLockDetection(form.passwordInput);
+		}
+
+		// Setup header reboot button (skip for exam mode)
+		if (!this._isExamMode) {
+			this._setupHeaderRebootButton();
+		}
 	}
 
 	// Returns true if the login button is disabled, false otherwise
@@ -179,7 +189,186 @@ export class LockScreenUI extends UIScreen {
 		}
 		else {
 			const flooredTime = Math.floor(timeRemaining);
-			this._form.lockedTimeAgo.innerText = "Automated logout occurs in " + flooredTime.toString() + " minute" + (flooredTime === 1 ? "" : "s");
+			this._form.lockedTimeAgo.innerText = "Automated logout in " + flooredTime.toString() + " minute" + (flooredTime === 1 ? "" : "s");
+		}
+	}
+
+	private _setupCapsLockDetection(passwordInput: HTMLInputElement): void {
+		const capsLockIndicator = this._createCapsLockIndicator(passwordInput);
+		let currentCapsLockState = false;
+
+		const checkCapsLock = (event: KeyboardEvent) => {
+			const isCapsLockOn = event.getModifierState('CapsLock');
+			currentCapsLockState = isCapsLockOn;
+			this._toggleCapsLockIndicator(capsLockIndicator, isCapsLockOn);
+		};
+
+		// Listen for caps lock changes globally (document level) and track state
+		const globalCapsLockCheck = (event: KeyboardEvent) => {
+			currentCapsLockState = event.getModifierState('CapsLock');
+			// Only update indicator if password field is focused
+			if (document.activeElement === passwordInput) {
+				this._toggleCapsLockIndicator(capsLockIndicator, currentCapsLockState);
+			}
+		};
+
+		// Add global listeners for caps lock detection
+		document.addEventListener('keydown', globalCapsLockCheck);
+		document.addEventListener('keyup', globalCapsLockCheck);
+
+		// Also listen on the password field itself
+		passwordInput.addEventListener('keydown', checkCapsLock);
+		passwordInput.addEventListener('keyup', checkCapsLock);
+
+		// Show indicator when field gains focus (use tracked state)
+		passwordInput.addEventListener('focus', () => {
+			this._toggleCapsLockIndicator(capsLockIndicator, currentCapsLockState);
+		});
+
+		// Hide indicator when field loses focus
+		passwordInput.addEventListener('blur', () => {
+			this._toggleCapsLockIndicator(capsLockIndicator, false);
+		});
+
+		// Initialize caps lock state by triggering a check when any key is pressed
+		const initializeCapsLock = (event: KeyboardEvent) => {
+			currentCapsLockState = event.getModifierState('CapsLock');
+			// Remove this one-time listener after first keypress
+			document.removeEventListener('keydown', initializeCapsLock);
+		};
+		document.addEventListener('keydown', initializeCapsLock, { once: true });
+	}
+
+	private _createCapsLockIndicator(passwordInput: HTMLInputElement): HTMLElement {
+		// Create wrapper container
+		const wrapper = document.createElement('div');
+		wrapper.className = 'password-input-wrapper';
+
+		// Replace the password input with the wrapper
+		passwordInput.parentNode?.insertBefore(wrapper, passwordInput);
+		wrapper.appendChild(passwordInput);
+
+		// Create indicator
+		const indicator = document.createElement('div');
+		indicator.className = 'caps-lock-indicator';
+		indicator.textContent = '⇧';
+		indicator.style.display = 'none';
+
+		// Add indicator to wrapper
+		wrapper.appendChild(indicator);
+
+		return indicator;
+	}
+
+	private _toggleCapsLockIndicator(indicator: HTMLElement, show: boolean): void {
+		indicator.style.display = show ? 'block' : 'none';
+	}
+
+	private _setupHeaderRebootButton(): void {
+		const rebootButton = document.getElementById('reboot-button') as HTMLButtonElement;
+		if (rebootButton) {
+			// Show the reboot button when lock screen is active
+			rebootButton.style.display = 'inline-block';
+
+			// Remove any existing event listeners to prevent conflicts
+			rebootButton.onclick = null;
+
+			// Add event listener
+			rebootButton.addEventListener('click', (event: Event) => {
+				event.preventDefault();
+				console.log('Reboot button clicked from lock screen');
+				this._handleReboot();
+			});
+		}
+	}
+
+	private async _handleReboot(): Promise<void> {
+		const username = this._activeSession.username;
+		const confirmed = await this._showConfirmDialog(`Are you sure you want to reboot the system? This will terminate the session for user "${username}" and restart the computer.`);
+		if (confirmed) {
+			console.log('Reboot confirmed, proceeding with system reboot');
+			
+			// Use lightdm.restart() to reboot the system, which cleanly terminates all sessions
+			if (typeof lightdm !== 'undefined' && lightdm.restart) {
+				console.log('Calling lightdm.restart() to reboot system and terminate user session');
+				lightdm.restart();
+			} else {
+				console.log('lightdm.restart not available');
+				alert('Reboot functionality not available in this environment');
+			}
+		} else {
+			console.log('Reboot cancelled by user');
+		}
+	}
+
+	private _showConfirmDialog(message: string): Promise<boolean> {
+		return new Promise((resolve) => {
+			// Create dialog container
+			const dialog = document.createElement('div');
+			dialog.className = 'confirm-dialog';
+
+			// Create dialog content
+			const content = document.createElement('div');
+			content.className = 'confirm-dialog-content';
+
+			// Create message
+			const messageEl = document.createElement('div');
+			messageEl.className = 'confirm-dialog-message';
+			messageEl.textContent = message;
+
+			// Create buttons container
+			const buttonsEl = document.createElement('div');
+			buttonsEl.className = 'confirm-dialog-buttons';
+
+			// Create Cancel button
+			const cancelBtn = document.createElement('button');
+			cancelBtn.className = 'confirm-dialog-button';
+			cancelBtn.textContent = 'Cancel';
+			cancelBtn.addEventListener('click', () => {
+				document.body.removeChild(dialog);
+				resolve(false);
+			});
+
+			// Create Confirm button
+			const confirmBtn = document.createElement('button');
+			confirmBtn.className = 'confirm-dialog-button primary';
+			confirmBtn.textContent = 'Confirm';
+			confirmBtn.addEventListener('click', () => {
+				document.body.removeChild(dialog);
+				resolve(true);
+			});
+
+			// Assemble dialog
+			buttonsEl.appendChild(cancelBtn);
+			buttonsEl.appendChild(confirmBtn);
+			content.appendChild(messageEl);
+			content.appendChild(buttonsEl);
+			dialog.appendChild(content);
+
+			// Add to DOM
+			document.body.appendChild(dialog);
+
+			// Focus confirm button
+			confirmBtn.focus();
+
+			// Handle ESC key
+			const handleEsc = (e: KeyboardEvent) => {
+				if (e.key === 'Escape') {
+					document.body.removeChild(dialog);
+					document.removeEventListener('keydown', handleEsc);
+					resolve(false);
+				}
+			};
+			document.addEventListener('keydown', handleEsc);
+		});
+	}
+
+	public hideForm(): void {
+		super.hideForm();
+		// Hide reboot button when lock screen is hidden
+		const rebootButton = document.getElementById('reboot-button') as HTMLButtonElement;
+		if (rebootButton) {
+			rebootButton.style.display = 'none';
 		}
 	}
 }

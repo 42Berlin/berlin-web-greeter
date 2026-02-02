@@ -47,18 +47,57 @@ const getEventDateRange = function(): string {
 	return `${currentDate.toISOString()},${maxFetchDate.toISOString()}`;
 };
 
-const filterExamOrEventOnDate = function(items: Exam42[] | Event42[]) {
-	// Delete events that are over the limit specified in the global variable
-	const currentDate = new Date();
-	const maxFetchDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * FETCH_EVENTS_UPCOMING_DAYS);
-	// @ts-ignore (This expression is not callable -> each member of union type has signatures, but none of those signatures are compatible with each other)
-	const filteredItems = items.filter((item: Exam42 | Event42) => {
-		const eventDate = new Date(item.begin_at);
-		return eventDate.getTime() <= maxFetchDate.getTime();
-	});
-	return filteredItems;
-}
+// const filterExamOrEventOnDate = function(items: Exam42[] | Event42[]) {
+// 	// Delete events that are over the limit specified in the global variable
+// 	const currentDate = new Date();
+// 	const maxFetchDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * FETCH_EVENTS_UPCOMING_DAYS);
+// 	// @ts-ignore (This expression is not callable -> each member of union type has signatures, but none of those signatures are compatible with each other)
+// 	const filteredItems = items.filter((item: Exam42 | Event42) => {
+// 		const eventDate = new Date(item.begin_at);
+// 		return eventDate.getTime() <= maxFetchDate.getTime();
+// 	});
+// 	return filteredItems;
+// };
+// const filterExamOrEventOnDate = function(items: Exam42[] | Event42[]) {
+// 	// Set current date to midnight to ensure all events from today are included
+// 	const currentDate = new Date();
+// 	currentDate.setHours(0, 0, 0, 0); // Reset to 00:00:00
 
+// 	const maxFetchDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * FETCH_EVENTS_UPCOMING_DAYS);
+
+// 	const filteredItems = items.filter((item: Exam42 | Event42) => {
+// 		const eventDate = new Date(item.begin_at);
+// 		return eventDate.getTime() >= currentDate.getTime() && eventDate.getTime() <= maxFetchDate.getTime();
+// 	});
+
+// 	return filteredItems;
+// };
+
+// Assuming Exam42 and Event42 have different structures and Event42 has a `begin_at` property.
+
+function hasBeginAt(item: Exam42 | Event42): item is Event42 {
+	return (item as Event42).begin_at !== undefined;
+  }
+  
+  const filterExamOrEventOnDate = function (items: (Exam42 | Event42)[]) {
+	// Set current date to midnight to ensure all events from today are included
+	const currentDate = new Date();
+	currentDate.setHours(0, 0, 0, 0); // Reset to 00:00:00
+  
+	const maxFetchDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * FETCH_EVENTS_UPCOMING_DAYS);
+  
+	const filteredItems = items.filter((item) => {
+	  // Check if the item has the `begin_at` property (i.e., it's an Event42)
+	  if (hasBeginAt(item)) {
+		const eventDate = new Date(item.begin_at);
+		return eventDate.getTime() >= currentDate.getTime() && eventDate.getTime() <= maxFetchDate.getTime();
+	  }
+	  return false; // Or handle the case for Exam42 if necessary
+	});
+  
+	return filteredItems;
+  };
+  
 
 export const fetchEvents = async function(api: Fast42): Promise<Event42[]> {
 	try {

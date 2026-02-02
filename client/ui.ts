@@ -22,14 +22,14 @@ export class UI {
 	private _calendar: CalendarUI;
 	private _logo: HTMLImageElement;
 	private _message: HTMLElement;
-	private _message_tech: HTMLElement;
+	private _bubbleMessage: HTMLElement;
 	private _scalingFactor: number = 1;
 
 	public constructor(data: Data, auth: Authenticator) {
 		this._infoBars = new InfoBarsUI();
 		this._logo = document.getElementById('logo') as HTMLImageElement;
 		this._message = document.getElementById('message') as HTMLElement;
-		this._message_tech = document.getElementById('message_tech') as HTMLElement;
+		this._bubbleMessage = document.getElementById('bubble-message') as HTMLElement;
 
 		// Set up DPI scaling
 		this.applyHiDpiScaling();
@@ -66,17 +66,20 @@ export class UI {
 		}
 
 		// Register message change listener
-		data.addDataChangeListener((newData: DataJson | undefined) => {
-			if (newData !== undefined) {
-				this.setMessage(newData.message);
-				this.setMessageTech(newData.message_tech);
+		data.addDataChangeListener((data: DataJson | undefined) => {
+			if (data !== undefined) {
+				this.setMessage(data.message);
+				this.setBubbleMessage(data.bubble_message);
+				this.toggleBackgroundVideo(data.background_video);
+				this._examModeDisabled = data.mode === "exam" ? false : true;
 			}
 		});
-
 		// Set message now
 		if (data.dataJson !== undefined) {
-			this.setMessage(data.dataJson.message);  
-			this.setMessageTech(data.dataJson.message_tech);
+			this.setMessage(data.dataJson.message);
+			this.setBubbleMessage(data.dataJson.bubble_message);
+			this.toggleBackgroundVideo(data.dataJson.background_video);
+			this._examModeDisabled = data.dataJson.mode === "exam" ? false : true;
 		}
 
 		this._wallpaper = new WallpaperUI(this._isLockScreen);
@@ -113,22 +116,53 @@ export class UI {
 		this._message.innerHTML = message;
 	}
 
-	public setMessageTech(message: string): void {
+	public setBubbleMessage(message: string): void {
+		// Remove any HTML tags from the message
 		message = message.replace(/(<([^>]+)>)/gi, "");
+		// Replace newlines with <br> tags
 		message = message.replace(/\n/g, '<br>');
+		// Parse *bold* and _italic_ text
 		message = message.replace(/\*(.*?)\*/g, '<b>$1</b>');
 		message = message.replace(/_(.*?)_/g, '<i>$1</i>');
+		// Replace multiple spaces with non-breaking spaces
 		message = message.replace(/  +/g, '&nbsp;&nbsp;');
 
-		this._message_tech.innerHTML = message;
+		this._bubbleMessage.innerHTML = message;
+	}
+
+	public logoutActiveSession(): void {
+		if (this._isLockScreen && this._lockScreen) {
+			// Hide lock screen
+			this._lockScreen.hideForm();
+			this._lockScreen = null;
+			this._isLockScreen = false;
+
+			// Show logo again
+			this._logo.style.display = 'block';
+
+			// Show login screen if it exists, otherwise we'd need to reload
+			if (this._loginScreen) {
+				this._loginScreen.showForm();
+			} else {
+				// Force page reload to properly reinitialize the login screen
+				window.location.reload();
+			}
+		}
+	}
+
+	public toggleBackgroundVideo(show: boolean): void {
+		const videoElement = document.getElementById('background-video') as HTMLVideoElement;
+		if (videoElement) {
+			videoElement.style.display = show ? 'block' : 'none';
+		}
 	}
 
 	public getMessage(): string {
 		return this._message.innerText;
 	}
 
-	public getMessageTech(): string {
-		return this._message_tech.innerText;
+	public getBubbleMessage(): string {
+		return this._bubbleMessage.innerText;
 	}
 
 	/**

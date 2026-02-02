@@ -11,7 +11,7 @@ fi
 
 # Check if an existing uninstaller for codam-web-greeter exists
 # If it does, we want to uninstall the old version first
-UNINSTALL_SCRIPT="/usr/share/codam/uninstall-codam-web-greeter-service.sh"
+UNINSTALL_SCRIPT="/usr/share/42/scripts/web-greeter/uninstall-codam-web-greeter-service.sh"
 if [ -f "$UNINSTALL_SCRIPT" ]; then
 	/usr/bin/echo "Uninstalling old version of codam-web-greeter..."
 	/usr/bin/bash "$UNINSTALL_SCRIPT"
@@ -26,13 +26,13 @@ if ! /usr/bin/dpkg -s xprintidle >/dev/null 2>&1; then
 	/usr/bin/apt-get install -y xprintidle
 fi
 
-# Install service scripts to /usr/share/codam
-/usr/bin/mkdir -p /usr/share/codam
-/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-fetcher.sh" /usr/share/codam/codam-web-greeter-fetcher.sh
-/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler.sh" /usr/share/codam/codam-web-greeter-idler.sh
-/usr/bin/chmod 700 /usr/share/codam/codam-web-greeter-idler.sh
-/usr/bin/cp "$ROOT_DIR/user/codam-web-greeter-init.sh" /usr/share/codam/codam-web-greeter-init.sh
-/usr/bin/cp "$ROOT_DIR/user/codam-web-greeter-cleanup.sh" /usr/share/codam/codam-web-greeter-cleanup.sh
+# Install service scripts to /usr/share/42/scripts/web-greeter
+/usr/bin/mkdir -p /usr/share/42/scripts/web-greeter
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-fetcher.sh" /usr/share/42/scripts/web-greeter/codam-web-greeter-fetcher.sh
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler.sh" /usr/share/42/scripts/web-greeter/codam-web-greeter-idler.sh
+/usr/bin/chmod 700 /usr/share/42/scripts/web-greeter/codam-web-greeter-idler.sh
+/usr/bin/cp "$ROOT_DIR/user/codam-web-greeter-init.sh" /usr/share/42/scripts/web-greeter/codam-web-greeter-init.sh
+/usr/bin/cp "$ROOT_DIR/user/codam-web-greeter-cleanup.sh" /usr/share/42/scripts/web-greeter/codam-web-greeter-cleanup.sh
 
 # Copy uninstall script to $UNINSTALL_SCRIPT
 /usr/bin/cp "$ROOT_DIR/uninstall.sh" "$UNINSTALL_SCRIPT"

@@ -11,16 +11,15 @@ A greeter theme for [nody-greeter](https://github.com/JezerM/nody-greeter)/web-g
 - Customizable background image and logo
 - Greeter can be used as a lock screen when someone is already logged in (replacement for ft_lock)
 - Automatically log students out after 42 minutes of inactivity, either in-session or on the lock screen
-- Display user's Intra picture on the lock screen
+- Display user's profile picture (from `~/.face`) on the lock screen
 - Display user's Gnome wallpaper on the lock screen
 - Keybinding to gracefully reboot the computer (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Del</kbd>)
 - Display network status on-screen without having to log in
-- Screen brightness control support
-- Choose between light or dark mode upon installation
+- Custom screensaver support (HTML5 canvas)
 
 
 ## Screenshots
-![Login screen](promo/login-screen-berlin.png)
+![Login screen](promo/login-screen.png)
 ![Lock screen](promo/lock-screen.png)
 
 
@@ -169,22 +168,13 @@ if [ "$DISPLAY" != ":0" ]; then
 fi
 ```
 
-### Users are sometimes randomly logged out after locking their screen once
-Add the following lines to the top of the logout hook defined in */etc/lightdm/lightdm.conf*:
-```bash
-# Delete any lock_time files in /tmp (used by codam-web-greeter to know when the screen was locked
-# and when to automatically log out the user)
-/usr/bin/rm -f /tmp/codam_web_greeter_lock_timestamp_*
-```
-Make sure to add these lines above the lines added in the previous section (the check for the greeter logout event).
-
 ### My custom wallpaper or logo doesn't show up
 Make sure the folders mentioned for branding in */etc/lightdm/web-greeter.yml* exist and contain the correct files.
 ```yaml
 branding:
-    background_images_dir: /usr/share/codam/web-greeter
-    logo_image: /usr/share/codam/web-greeter/logo.png
-    user_image: /usr/share/codam/web-greeter/user.png
+    background_images_dir: /usr/share/42/web-greeter/web-greeter
+    logo_image: /usr/share/42/web-greeter/web-greeter/logo.png
+    user_image: /usr/share/42/web-greeter/web-greeter/user.png
 ```
 For 42 schools, link */usr/share/42/login-screen.jpg* to the */usr/share/codam/web-greeter/login-screen.png*. Place your campus's logo in */usr/share/42/logo.png* and a default user icon in */usr/share/42/user.png*. The background initially set for ft_lock is not used.
 

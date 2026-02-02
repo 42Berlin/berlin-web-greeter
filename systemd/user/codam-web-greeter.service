@@ -8,8 +8,8 @@ Type=oneshot
 Restart=on-failure
 RestartSec=30
 RemainAfterExit=yes
-ExecStart=/usr/bin/bash /usr/share/codam/codam-web-greeter-init.sh
-ExecStopPost=/usr/bin/bash /usr/share/codam/codam-web-greeter-cleanup.sh
+ExecStart=/usr/bin/bash /usr/share/42/scripts/web-greeter/codam-web-greeter-init.sh
+ExecStopPost=/usr/bin/bash /usr/share/42/scripts/web-greeter/codam-web-greeter-cleanup.sh
 
 [Install]
 WantedBy=default.target

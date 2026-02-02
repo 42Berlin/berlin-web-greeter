@@ -4,11 +4,11 @@ import { lightdm } from 'nody-greeter-types/index'
 
 const PATH_DATA_JSON: string = 'data.json';
 // Could implement window.greeter_config.branding here, but it appears this object is inconsistent in its type definition
-const PATH_LOGO: string = '/usr/share/codam/web-greeter/logo.png';
-const PATH_WALLPAPER_LOGIN: string = '/usr/share/codam/web-greeter/login-screen.png';
+const PATH_LOGO: string = '/usr/share/42/web-greeter/logo.png';
+const PATH_WALLPAPER_LOGIN: string = '/usr/share/42/web-greeter/login-screen.png';
 const PATH_WALLPAPER_LOCK_USER: string = '/tmp/codam-web-greeter-user-wallpaper';
 const PATH_USER_IMAGE: string = '/tmp/codam-web-greeter-user-avatar';
-const PATH_USER_DEFAULT_IMAGE: string = '/usr/share/codam/web-greeter/user.png';
+const PATH_USER_DEFAULT_IMAGE: string = '/usr/share/42/web-greeter/user.png';
 
 export class GreeterImage {
 	private _path: string;
@@ -96,7 +96,9 @@ export interface DataJson {
 	exams_for_host: ExamForHost[];
 	fetch_time: string;
 	message: string;
-	message_tech: string;
+	bubble_message: string;
+	background_video: boolean;
+	mode: string;
 }
 
 
@@ -165,56 +167,52 @@ export class Data {
 	}
 
 	private _refetchDataJson(): void {
-	
-	fetch(PATH_DATA_JSON)
-		.then(response => response.json())
-		.then(data => {
-			console.log("Fetched data.json", data);
-			if ("error" in data) {
-				console.warn("data.json response contains an error", data);
-				window.ui.setDebugInfo(`data.json response contains an error: ${data.error}`);
-				return;
-			}
+		if (!navigator.onLine) {
+			console.warn("Computer is offline, not fetching data.json");
+			return;
+		}
 
-			if (!("message" in data)) {
-				data.message = "";
-			}
-			if (!("message_tech" in data)) {
-				data.message_tech = "";
-			}
-			this._dataJson = data;
+		fetch(PATH_DATA_JSON)
+			.then(response => response.json())
+			.then(data => {
+				console.log("Fetched data.json", data);
+				if ("error" in data) {
+					console.warn("data.json response contains an error", data);
+					window.ui.setDebugInfo(`data.json response contains an error: ${data.error}`);
+					return;
+				}
 
-			return fetch('/usr/share/42/berlin.conf')
-				.then(resp => resp.text())
-				.then(confText => {
-					const lines = confText.split('\n');
-					let greeterMsg = '';
-					let bubbleMsg = '';
+				// Fallback for missing message field
+				if (!("message" in data)) {
+					data.message = "";
+				}
 
-					for (const line of lines) {
-						const trimmed = line.trim();
-						if (trimmed.startsWith('GREETER_MSG=')) {
-							greeterMsg = trimmed.split('=')[1].trim().replace(/^['"]|['"]$/g, '');
-						} else if (trimmed.startsWith('BUBBLE_MSG=')) {
-							bubbleMsg = trimmed.split('=')[1].trim().replace(/^['"]|['"]$/g, '');
-						}
-					}
-					this._dataJson!.message = bubbleMsg;
-					this._dataJson!.message_tech = greeterMsg;
-				})
-				.catch(err => {
-					console.warn("Error fetching berlin.conf", err);
-				});
-		})
-		.then(() => {
-			for (const listener of this._dataChangeListeners) {
-				listener(this._dataJson);
-			}
-		})
-		.catch(error => {
-			if (window.ui) {
-				window.ui.setDebugInfo(`Error fetching data.json: ${error}`);
-			}
-		});
+				// Fallback for missing bubble_message field
+				if (!("bubble_message" in data)) {
+					data.bubble_message = "";
+				}
+
+				// Fallback for missing background_video field
+				if (!("background_video" in data)) {
+					data.background_video = false;
+				}
+
+				// Fallback for missing mode field
+				if (!("background_video" in data)) {
+					data.mode = "default";
+				}
+
+				this._dataJson = data;
+
+				// Emit data change event to all listeners
+				for (const listener of this._dataChangeListeners) {
+					listener(this._dataJson);
+				}
+			})
+			.catch(error => {
+				if (window.ui) {
+					window.ui.setDebugInfo(`Error fetching data.json: ${error}`);
+				}
+			});
 	}
 }

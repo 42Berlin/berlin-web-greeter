@@ -6,7 +6,7 @@ After=network-online.target
 Type=simple
 User=codam-web-greeter
 Group=codam-web-greeter
-ExecStart=/usr/bin/bash /usr/share/codam/codam-web-greeter-fetcher.sh
+ExecStart=/usr/bin/bash /usr/share/42/scripts/web-greeter/codam-web-greeter-fetcher.sh
 Restart=always
 RestartSec=120
 

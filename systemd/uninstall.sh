@@ -35,7 +35,7 @@ fi
 /usr/sbin/deluser codam-web-greeter
 
 # Remove service scripts
-/usr/bin/rm /usr/share/codam/codam-web-greeter-*.sh
+/usr/bin/rm /usr/share/42/scripts/web-greeter/codam-web-greeter-*.sh
 
 # Remove data.json
 DATA_JSON_FILE="/usr/share/web-greeter/themes/codam/data.json"
@@ -44,10 +44,10 @@ if [ -f "$DATA_JSON_FILE" ]; then
 fi
 
 # Remove uninstall script
-/usr/bin/rm /usr/share/codam/uninstall-codam-web-greeter-service.sh
+/usr/bin/rm /usr/share/42/scripts/web-greeter/uninstall-codam-web-greeter-service.sh
 
-# Check if /usr/share/codam is empty - if so, remove it
-CODAM_SHARE_FILES=$(/usr/bin/ls -A /usr/share/codam | /usr/bin/wc -l)
+# Check if /usr/share/42/scripts/web-greeter is empty - if so, remove it
+CODAM_SHARE_FILES=$(/usr/bin/ls -A /usr/share/42/scripts/web-greeter | /usr/bin/wc -l)
 if [ "$CODAM_SHARE_FILES" -eq 0 ]; then
-	/usr/bin/rmdir /usr/share/codam
+	/usr/bin/rmdir /usr/share/42/scripts/web-greeter
 fi

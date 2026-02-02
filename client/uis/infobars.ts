@@ -3,7 +3,7 @@ export interface UIInfoElements {
 	version: HTMLSpanElement;
 	clock: HTMLSpanElement;
 	date: HTMLSpanElement;
-	networkIcon: HTMLSpanElement;
+	network: HTMLSpanElement;
 	debug: HTMLSpanElement;
 }
 
@@ -16,7 +16,7 @@ export class InfoBarsUI {
 			version: document.getElementById('info-version') as HTMLSpanElement,
 			clock: document.getElementById('info-clock') as HTMLSpanElement,
 			date: document.getElementById('info-date') as HTMLSpanElement,
-			networkIcon: document.getElementById('info-network-icon') as HTMLSpanElement,
+			network: document.getElementById('info-network') as HTMLSpanElement,
 			debug: document.getElementById('info-debug') as HTMLSpanElement,
 		};
 
@@ -47,18 +47,18 @@ export class InfoBarsUI {
 		setInterval(() => this._updateClock(), 1000);
 
 		// Populate network icon
-		this._infoElements.networkIcon.innerHTML = (navigator.onLine ? '<span>&#128423; ONLINE</span>' : '<span style="color: red;">&#128423; OFFLINE</span>');
+		this._infoElements.network.innerHTML = (navigator.onLine ? '<span>&#128423; ONLINE</span>' : '<span style="color: red;">&#128423; OFFLINE</span>');
 		window.addEventListener('online', () => {
-			this._infoElements.networkIcon.innerHTML = '<span>&#128423; ONLINE</span>';
+			this._infoElements.network.innerHTML = '<span>&#128423; ONLINE</span>';
 		});
 		window.addEventListener('offline', () => {
-			this._infoElements.networkIcon.innerHTML = '<span style="color: red;">&#128423; OFFLINE</span>';
+			this._infoElements.network.innerHTML = '<span style="color: red;">&#128423; OFFLINE</span>';
 		});
 	}
 
 	private _updateClock(): void {
 		const now: Date = new Date();
 		this._infoElements.date.innerText = now.toLocaleString('en-NL', { dateStyle: 'medium' });
-		this._infoElements.clock.innerText = now.toLocaleString('en-NL', { timeStyle: 'medium' });
+		this._infoElements.clock.innerText = now.toLocaleString('en-NL', { timeStyle: 'short' });
 	}
 }

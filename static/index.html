@@ -3,13 +3,17 @@
 	<head>
 		<meta charset="UTF-8" />
 		<!-- optional: you can use the following setup to load required css without building greeter.css -->
-		<!-- <link rel="stylesheet" href="css/dark.css" /> -->
-		<!-- <link rel="stylesheet" href="css/styles.css" /> -->
+		<link rel="stylesheet" href="css/dark.css" />
+		<link rel="stylesheet" href="css/styles.css" />
 		<!-- <link rel="stylesheet" href="css/boxed.css" /> -->
-		<link rel="stylesheet" href="greeter.css" onerror="console.error('Styles are missing: did you use the Makefile to build static/greeter.css?');" />
+		<!-- <link rel="stylesheet" href="greeter.css" onerror="console.error('Styles are missing: did you use the Makefile to build static/greeter.css?');" /> -->
 		<title>Codam Theme for nody-greeter</title>
 	</head>
 	<body>
+		<video autoplay loop muted playsinline id="background-video">
+			<source src="assets/video.mp4" type="video/mp4">
+		</video>
+
 		<iframe id="game-frame" src="game/index.html" tabindex="0"></iframe>
 
 		<div id="blur-filter" style="display: none;"></div>
@@ -22,16 +26,20 @@
 				<span id="info-hostname">hostname</span>
 			</div>
 			<div class="horibar-right">
-				<span id="info-network-icon">&#128423;</span>
-				<span id="info-date">0 Jan</span>
-				<span id="info-clock">00:00:00</span>
+				<button type="button" id="reboot-button" class="header-button" title="Reboot system" style="display: none;">REBOOT</button>
+				<button type="button" id="logout-button" class="header-button" title="Log out" style="display: none;">LOGOUT</button>
+				<span id="info-network">&#128423; ONLINE</span>
+				<span id="info-date">30 Jan 2025</span>
+				<span id="info-clock">00:00</span>
 			</div>
 		</header>
 
-		<div id="offline-message" style="display: none; text-align: center;">
-			<div id="offline-placeholder"></div>
-			<p id="offline-text" style="color: red; font-weight: bold;">You are offline. Please check your connection.</p>
+		<!-- Offline message -->
+		<div id="offline-message">
+			<div id="offline-img-placeholder"></div>
+			<p id="offline-text">This PC is offline. Please check the ethernet cable on both ends.</p>
 		</div>
+
 
 		<!-- Logo (base64 string is an empty image) -->
 		<div id="logo-wrapper" class="logo-top-center">
@@ -62,19 +70,22 @@
 				<h3>This computer is reserved for an exam between <span id="exam-mode-start">...</span> and <span id="exam-mode-end">...</span>.</h3>
 				<p><span id="exam-mode-projects"></span></p>
 				<br>
-				<p id="exam-mode-start-timer">Click the arrow below to start your exam.</p>
+				<p>Click the arrow below to start your exam.</p>
 				<button type="submit" id="exam-mode-start-button" title="Start your exam">&#10149;</button>
 			</form>
-			
-			<!-- Exam mode form -->
-			<div id="message_tech"></div>
-			
+
+
 			<!-- Message -->
 			<div id="message-wrapper">
-				<div id="message-content">
-					<div id="image-placeholder"></div>
-					<div id="message"></div>
-					<div id="bg-placeholder"></div>
+				<div id="message"></div>
+			</div>
+
+			<!-- Bubble Message -->
+			<div id="bubble-message-wrapper">
+				<div id="bubble-message-content">
+					<div id="bubble-image-placeholder"></div>
+					<div id="bubble-message">This is a message that will be displayed on the login screen!</div>
+					<div id="bubble-bg-placeholder"></div>
 				</div>
 			</div>
 		</main>
