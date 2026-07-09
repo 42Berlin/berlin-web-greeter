@@ -8,6 +8,17 @@ import { WallpaperUI } from "./uis/wallpaper"
 import { CalendarUI } from "./uis/calendar";
 import { ExamModeUI } from "./uis/screens/examscreen";
 
+const LOCK_SCREEN_TIPS: string[] = [
+	'Did you know you can get a mouse/keyboard replacement at frontdesk?',
+	'Did you know you can buy extra storage in the intra shop?',
+	'Did you know you can borrow a monitor from the frontdesk?',
+	'Did you know you can report issues on the intra forum?',
+	'Did you know you can join study groups on the intra calendar?',
+	'Did you know you can book a meeting room on the intra?',
+	'Did you know you can get help from the Bocal team during office hours?',
+	'Did you know you can find coding resources on the intra wiki?',
+];
+
 export class UI {
 	public static readonly EXAM_MODE_CHECK_INTERVAL: number = 5 * 1000; // 5 seconds
 	public static readonly SHOW_EXAM_MODE_MINUTES_BEFORE_BEGIN: number = 20; // 20 minutes
@@ -130,7 +141,13 @@ export class UI {
 	}
 
 	public setBubbleMessage(message: string): void {
-		this._bubbleMessage.innerHTML = UI._renderMarkup(message);
+		if (this._isLockScreen) {
+			// On lock screen, show a random tip instead of the berlin.conf message
+			const randomTip = LOCK_SCREEN_TIPS[Math.floor(Math.random() * LOCK_SCREEN_TIPS.length)];
+			this._bubbleMessage.innerHTML = UI._renderMarkup(randomTip);
+		} else {
+			this._bubbleMessage.innerHTML = UI._renderMarkup(message);
+		}
 	}
 
 	public logoutActiveSession(): void {
