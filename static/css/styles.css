@@ -1222,3 +1222,24 @@ body.low-dpi .diag-key,
 body.low-dpi .diag-val {
   font-size: 14px;
 }
+
+/* Particle canvas overlay */
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+
+/* Parallax depth layers (driven by --mx/--my from parallax.ts or debug.js) */
+#gradient-bg {
+  transform: translate(calc(var(--mx, 0) * -20px), calc(var(--my, 0) * -20px));
+  will-change: transform;
+}
+
+#logo-wrapper,
+main {
+  transform: translate(calc(var(--mx, 0) * 5px), calc(var(--my, 0) * 5px));
+  will-change: transform;
+}

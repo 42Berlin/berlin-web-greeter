@@ -611,3 +611,142 @@ function showConfirmDialog(message, onConfirm, onCancel) {
 	});
 }
 
+// ── Premium layer features for debug preview ──
+
+// Low-DPI detection
+if (window.devicePixelRatio <= 1 && screen.width < 2560) {
+	document.body.classList.add('low-dpi');
+}
+
+// Boot sequence: trigger the staggered entrance animation
+document.body.classList.add('boot-pending');
+requestAnimationFrame(() => {
+	document.body.classList.remove('boot-pending');
+	document.body.classList.add('boot-active');
+	setTimeout(() => {
+		document.body.classList.remove('boot-active');
+	}, 2500);
+});
+
+// Mouse parallax
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+	let rafId = 0;
+	document.addEventListener('mousemove', (e) => {
+		if (document.activeElement?.tagName === 'INPUT') return;
+		const cx = window.innerWidth / 2;
+		const cy = window.innerHeight / 2;
+		const mx = ((e.clientX - cx) / cx).toFixed(3);
+		const my = ((e.clientY - cy) / cy).toFixed(3);
+		if (!rafId) {
+			rafId = requestAnimationFrame(() => {
+				document.documentElement.style.setProperty('--mx', mx);
+				document.documentElement.style.setProperty('--my', my);
+				rafId = 0;
+			});
+		}
+	});
+}
+
+// Particle field
+(function initParticles() {
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+	const canvas = document.getElementById('particle-canvas');
+	if (!canvas) return;
+	const ctx = canvas.getContext('2d');
+	const COLORS = ['#99A3EB', '#00FFF2', '#E018A3'];
+	const DOT_COUNT = 50;
+	const LINE_DIST = 150;
+	const dots = [];
+
+	function resize() {
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	}
+	resize();
+	window.addEventListener('resize', resize);
+
+	for (let i = 0; i < DOT_COUNT; i++) {
+		dots.push({
+			x: Math.random() * canvas.width,
+			y: Math.random() * canvas.height,
+			vx: (Math.random() - 0.5) * 0.5,
+			vy: (Math.random() - 0.5) * 0.5,
+			r: 2 + Math.random() * 2,
+			color: COLORS[Math.floor(Math.random() * COLORS.length)],
+			opacity: 0.15 + Math.random() * 0.15,
+		});
+	}
+
+	function shouldShow() {
+		const g = document.getElementById('gradient-bg');
+		return g && g.style.display !== 'none' && getComputedStyle(g).display !== 'none';
+	}
+
+	function tick() {
+		if (!shouldShow()) {
+			canvas.style.display = 'none';
+			requestAnimationFrame(tick);
+			return;
+		}
+		canvas.style.display = 'block';
+		const w = canvas.width, h = canvas.height;
+		ctx.clearRect(0, 0, w, h);
+		for (const d of dots) {
+			d.x += d.vx; d.y += d.vy;
+			if (d.x < 0) d.x += w; if (d.x > w) d.x -= w;
+			if (d.y < 0) d.y += h; if (d.y > h) d.y -= h;
+			ctx.beginPath();
+			ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+			ctx.fillStyle = d.color;
+			ctx.globalAlpha = d.opacity;
+			ctx.fill();
+		}
+		ctx.globalAlpha = 0.06;
+		ctx.strokeStyle = '#99A3EB';
+		ctx.lineWidth = 1;
+		for (let i = 0; i < dots.length; i++) {
+			for (let j = i + 1; j < dots.length; j++) {
+				const dx = dots[i].x - dots[j].x;
+				const dy = dots[i].y - dots[j].y;
+				if (dx * dx + dy * dy < LINE_DIST * LINE_DIST) {
+					ctx.beginPath();
+					ctx.moveTo(dots[i].x, dots[i].y);
+					ctx.lineTo(dots[j].x, dots[j].y);
+					ctx.stroke();
+				}
+			}
+		}
+		ctx.globalAlpha = 1;
+		requestAnimationFrame(tick);
+	}
+	requestAnimationFrame(tick);
+})();
+
+// Auth choreography demo button
+const authDemoBtn = document.createElement('button');
+authDemoBtn.textContent = 'Auth Demo';
+authDemoBtn.style.marginLeft = '8px';
+authDemoBtn.addEventListener('click', () => {
+	const form = document.querySelector('main > form[style*="block"]') || document.getElementById('login-form');
+	if (!form) return;
+	const button = form.querySelector('button[type="submit"]');
+	if (!button) return;
+
+	form.classList.add('auth-loading');
+	button.innerHTML = '<span class="auth-spinner"><span></span><span></span><span></span></span>';
+
+	setTimeout(() => {
+		form.classList.remove('auth-loading');
+		form.classList.add('auth-success');
+		button.innerHTML = '<span class="auth-checkmark">✓</span>';
+
+		setTimeout(() => {
+			form.classList.remove('auth-success');
+			const isLock = form.id === 'lock-form';
+			button.innerHTML = (isLock ? 'unlock' : 'sign_in') + '<span class="term-arrow">&rarr;</span>';
+			form.querySelectorAll('input').forEach(i => { i.style.opacity = ''; i.style.transform = ''; });
+		}, 1500);
+	}, 1500);
+});
+optionsContainer.appendChild(authDemoBtn);
+
