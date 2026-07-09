@@ -29,7 +29,11 @@ export class WallpaperUI {
 			}
 		}
 		if (wallpaper === null) {
-			if (mode === 'default') {
+			if (mode === 'exam') {
+				// Exam mode: always use the animated gradient background, no wallpaper
+				wallpaper = null;
+			}
+			else if (mode === 'default') {
 				// Default mode: use GREETER_DEFAULT_WALLPAPER if set and present, else the animated gradient.
 				const defaultWallpaper = this._getDefaultWallpaper(window.data.dataJson?.default_wallpaper ?? '');
 				if (defaultWallpaper !== null && defaultWallpaper.exists) {
