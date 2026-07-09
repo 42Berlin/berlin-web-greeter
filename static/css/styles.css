@@ -898,6 +898,12 @@ aside {
   padding: var(--padding);
   display: flex;
   flex-direction: column;
+  transition: opacity 400ms ease-out;
+}
+
+/* Hide the event list entirely on the lock screen for a clean look */
+body.lock-screen aside {
+  display: none;
 }
 
 /* The event list scrolls; the next-event banner above it stays put */

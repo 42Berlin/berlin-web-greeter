@@ -221,8 +221,39 @@ function playBootAnimation(): void {
 	});
 }
 
+// Attract loop: after 30 min idle on the login screen, replay the event cascade
+// to draw attention. After 10 min of being visible, hide it again.
+// Toggling .boot-active re-runs the `both`-fill-mode animations from hidden state.
+function setupEventAttractLoop(isLockScreen: boolean): void {
+	if (isLockScreen) return;
+
+	const IDLE_SHOW_MS = 30 * 60 * 1000; // 30 min idle → show events
+	const VISIBLE_HIDE_MS = 10 * 60 * 1000; // 10 min visible → hide events
+	let lastInput = Date.now();
+	let eventsVisible = false;
+
+	const resetInput = (): void => { lastInput = Date.now(); };
+	document.addEventListener('mousemove', resetInput, { passive: true });
+	document.addEventListener('keydown', resetInput, { passive: true });
+	document.addEventListener('mousedown', resetInput, { passive: true });
+
+	setInterval(() => {
+		const idleFor = Date.now() - lastInput;
+		if (!eventsVisible && idleFor >= IDLE_SHOW_MS) {
+			eventsVisible = true;
+			playBootAnimation();
+		} else if (eventsVisible && idleFor >= IDLE_SHOW_MS + VISIBLE_HIDE_MS) {
+			eventsVisible = false;
+			const aside = document.querySelector('aside');
+			if (aside) (aside as HTMLElement).style.opacity = '0';
+			setTimeout(() => { if (!eventsVisible) { const a = document.querySelector('aside'); if (a) (a as HTMLElement).style.opacity = ''; } }, 500);
+		}
+	}, 1000);
+}
+
 window.addEventListener("GreeterReady", () => {
 	document.body.classList.add('boot-pending');
 	initGreeter();
 	playBootAnimation();
+	setupEventAttractLoop(window.ui.isLockScreen);
 });
