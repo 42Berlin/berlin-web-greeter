@@ -1,0 +1,137 @@
+/* Boot sequence: staggered entrance animations triggered by .boot-active on <body> */
+
+/* Initial hidden states — elements start invisible and offset */
+body.boot-pending header {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+body.boot-pending #logo-wrapper {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+body.boot-pending main form {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+body.boot-pending .calendar-event {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+body.boot-pending #next-event {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+body.boot-pending footer {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+body.boot-pending #gradient-bg {
+  opacity: 0;
+}
+
+/* Keyframes */
+@keyframes bootFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bootSlideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bootSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bootSlideRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes bootSpringDown {
+  0% { opacity: 0; transform: translateY(-30px); }
+  70% { opacity: 1; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bootSpringRight {
+  0% { opacity: 0; transform: translateX(30px); }
+  70% { opacity: 1; transform: translateX(-4px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Active boot animations */
+body.boot-active #gradient-bg {
+  animation: bootFadeIn 800ms ease-out forwards;
+}
+
+body.boot-active header {
+  animation: bootSlideDown 400ms cubic-bezier(0.34, 1.56, 0.64, 1) 300ms forwards;
+}
+
+body.boot-active #logo-wrapper {
+  animation: bootSpringDown 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms forwards;
+}
+
+body.boot-active main form {
+  animation: bootSlideUp 400ms ease-out 800ms forwards;
+}
+
+body.boot-active .calendar-event:nth-child(1) { animation: bootSlideRight 300ms ease-out 1000ms forwards; }
+body.boot-active .calendar-event:nth-child(2) { animation: bootSlideRight 300ms ease-out 1100ms forwards; }
+body.boot-active .calendar-event:nth-child(3) { animation: bootSlideRight 300ms ease-out 1200ms forwards; }
+body.boot-active .calendar-event:nth-child(4) { animation: bootSlideRight 300ms ease-out 1300ms forwards; }
+body.boot-active .calendar-event:nth-child(5) { animation: bootSlideRight 300ms ease-out 1400ms forwards; }
+body.boot-active .calendar-event:nth-child(6) { animation: bootSlideRight 300ms ease-out 1500ms forwards; }
+body.boot-active .calendar-event:nth-child(7) { animation: bootSlideRight 300ms ease-out 1600ms forwards; }
+body.boot-active .calendar-event:nth-child(8) { animation: bootSlideRight 300ms ease-out 1700ms forwards; }
+
+body.boot-active #next-event {
+  animation: bootSpringRight 400ms cubic-bezier(0.34, 1.56, 0.64, 1) 1500ms forwards;
+}
+
+body.boot-active footer {
+  animation: bootSlideUp 300ms ease-out 1200ms forwards;
+}
+
+/* Lock screen: skip logo and calendar, faster sequence */
+body.boot-pending.lock-screen .calendar-event,
+body.boot-pending.lock-screen #next-event {
+  opacity: 1;
+  transform: none;
+}
+
+body.boot-active.lock-screen main form {
+  animation: bootSlideUp 400ms ease-out 400ms forwards;
+}
+
+/* Reduced motion: collapse to a single fade */
+@media (prefers-reduced-motion: reduce) {
+  body.boot-pending header,
+  body.boot-pending #logo-wrapper,
+  body.boot-pending main form,
+  body.boot-pending .calendar-event,
+  body.boot-pending #next-event,
+  body.boot-pending footer,
+  body.boot-pending #gradient-bg {
+    transform: none;
+  }
+
+  body.boot-active header,
+  body.boot-active #logo-wrapper,
+  body.boot-active main form,
+  body.boot-active .calendar-event,
+  body.boot-active #next-event,
+  body.boot-active footer,
+  body.boot-active #gradient-bg {
+    animation: bootFadeIn 200ms ease-out forwards !important;
+  }
+}

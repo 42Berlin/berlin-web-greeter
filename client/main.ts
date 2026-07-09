@@ -210,5 +210,13 @@ async function initGreeter(): Promise<void> {
 }
 
 window.addEventListener("GreeterReady", () => {
+	document.body.classList.add('boot-pending');
 	initGreeter();
+	requestAnimationFrame(() => {
+		document.body.classList.remove('boot-pending');
+		document.body.classList.add('boot-active');
+		setTimeout(() => {
+			document.body.classList.remove('boot-active');
+		}, 2500);
+	});
 });
