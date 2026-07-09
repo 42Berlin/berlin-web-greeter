@@ -914,10 +914,16 @@ aside {
   transition: opacity 400ms ease-out;
 }
 
-/* Hide the event list entirely on the lock screen for a clean look */
+/* Hide the event list entirely on the lock screen and during maintenance for a clean look */
 body.lock-screen aside,
-body.exam-mode aside {
+body.exam-mode aside,
+body.maintenance-mode aside {
   display: none;
+}
+
+/* Never show maintenance message on lock screen */
+body.lock-screen #maintenance {
+  display: none !important;
 }
 
 /* Hide bubble message and tech team message in exam mode for a clean look */

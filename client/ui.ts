@@ -183,12 +183,14 @@ export class UI {
 			this._loginScreen?.hideForm();
 			this._examModeScreen?.hideForm();
 			if (this._maintenance) this._maintenance.style.display = "flex";
+			document.body.classList.add('maintenance-mode');
 			return false;
 		}
 		else if (this._maintenance && this._maintenance.style.display !== "none") {
 			// Coming back from maintenance: hide the notice and restore the login form
 			// (showForm is guarded by its own _formShown flag, so this is a no-op in normal operation).
 			this._maintenance.style.display = "none";
+			document.body.classList.remove('maintenance-mode');
 			this._loginScreen?.showForm();
 		}
 

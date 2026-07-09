@@ -242,8 +242,10 @@ maintToggle.addEventListener('change', () => {
 	if (maintToggle.checked) {
 		document.querySelectorAll('main > form').forEach((f) => f.style.display = 'none');
 		maint.style.display = 'flex';
+		document.body.classList.add('maintenance-mode');
 	} else {
 		maint.style.display = 'none';
+		document.body.classList.remove('maintenance-mode');
 		switchScreen('login-form');
 	}
 });
