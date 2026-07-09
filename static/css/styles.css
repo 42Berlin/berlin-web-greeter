@@ -937,7 +937,7 @@ aside {
 body.lock-screen aside,
 body.exam-mode aside,
 body.maintenance-mode aside {
-  display: none;
+  display: none !important;
 }
 
 /* Never show maintenance message on lock screen */
