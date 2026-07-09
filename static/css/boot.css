@@ -103,10 +103,15 @@ body.boot-active footer {
 }
 
 /* Lock screen: skip logo and calendar, faster sequence */
+body.boot-pending.lock-screen #logo-wrapper,
 body.boot-pending.lock-screen .calendar-event,
 body.boot-pending.lock-screen #next-event {
   opacity: 1;
   transform: none;
+}
+
+body.boot-active.lock-screen #logo-wrapper {
+  animation: none;
 }
 
 body.boot-active.lock-screen main form {
@@ -133,5 +138,6 @@ body.boot-active.lock-screen main form {
   body.boot-active footer,
   body.boot-active #gradient-bg {
     animation: bootFadeIn 200ms ease-out forwards !important;
+    animation-delay: 0ms !important;
   }
 }
