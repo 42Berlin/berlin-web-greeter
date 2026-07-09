@@ -7,11 +7,13 @@ export class LoginScreenUI extends UIScreen {
 	protected _events: AuthenticatorEvents = {
 		authenticationStart: () => {
 			this._disableForm();
+			this._showAuthLoading();
 		},
 		authenticationComplete: () => {
-			// TODO: Add a loading animation here
+			this._showAuthSuccess();
 		},
 		authenticationFailure: () => {
+			this._showAuthFailure();
 			this._enableForm();
 			this._wigglePasswordInput();
 		},
@@ -23,6 +25,32 @@ export class LoginScreenUI extends UIScreen {
 			alert(message);
 		},
 	};
+
+	private _showAuthLoading(): void {
+		const form = this._form.form;
+		form.classList.add('auth-loading');
+		const button = this._form.loginButton;
+		button.innerHTML = '<span class="auth-spinner"><span></span><span></span><span></span></span>';
+	}
+
+	private _showAuthSuccess(): void {
+		const form = this._form.form;
+		form.classList.remove('auth-loading');
+		form.classList.add('auth-success');
+		const button = this._form.loginButton;
+		button.innerHTML = '<span class="auth-checkmark">✓</span>';
+	}
+
+	private _showAuthFailure(): void {
+		const form = this._form.form;
+		form.classList.remove('auth-loading', 'auth-success');
+		form.classList.add('auth-failure');
+		const button = this._form.loginButton;
+		button.innerHTML = 'sign_in<span class="term-arrow">&rarr;</span>';
+		setTimeout(() => {
+			form.classList.remove('auth-failure');
+		}, 400);
+	}
 
 	public constructor(auth: Authenticator) {
 		super(auth);

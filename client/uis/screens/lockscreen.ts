@@ -13,11 +13,13 @@ export class LockScreenUI extends UIScreen {
 	protected _events: AuthenticatorEvents = {
 		authenticationStart: () => {
 			this._disableForm();
+			this._showAuthLoading();
 		},
 		authenticationComplete: () => {
-			// TODO: Add a loading animation here
+			this._showAuthSuccess();
 		},
 		authenticationFailure: () => {
+			this._showAuthFailure();
 			this._enableForm();
 			this._wigglePasswordInput();
 		},
@@ -29,6 +31,32 @@ export class LockScreenUI extends UIScreen {
 			alert(message);
 		},
 	};
+
+	private _showAuthLoading(): void {
+		const form = (this._form as UILockScreenElements).form;
+		form.classList.add('auth-loading');
+		const button = (this._form as UILockScreenElements).unlockButton;
+		button.innerHTML = '<span class="auth-spinner"><span></span><span></span><span></span></span>';
+	}
+
+	private _showAuthSuccess(): void {
+		const form = (this._form as UILockScreenElements).form;
+		form.classList.remove('auth-loading');
+		form.classList.add('auth-success');
+		const button = (this._form as UILockScreenElements).unlockButton;
+		button.innerHTML = '<span class="auth-checkmark">✓</span>';
+	}
+
+	private _showAuthFailure(): void {
+		const form = (this._form as UILockScreenElements).form;
+		form.classList.remove('auth-loading', 'auth-success');
+		form.classList.add('auth-failure');
+		const button = (this._form as UILockScreenElements).unlockButton;
+		button.innerHTML = 'unlock<span class="term-arrow">&rarr;</span>';
+		setTimeout(() => {
+			form.classList.remove('auth-failure');
+		}, 400);
+	}
 
 	public constructor(auth: Authenticator, activeSession: LightDMUser) {
 		super(auth);

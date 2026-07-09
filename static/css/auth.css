@@ -1,0 +1,102 @@
+/* Auth choreography: login/unlock animation states */
+
+/* Spinner: three pulsing dots replacing button text */
+@keyframes authDotPulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1.2); }
+}
+
+.auth-spinner {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-spinner span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-cyan);
+  animation: authDotPulse 1.2s ease-in-out infinite;
+}
+
+.auth-spinner span:nth-child(2) { animation-delay: 0.15s; }
+.auth-spinner span:nth-child(3) { animation-delay: 0.3s; }
+
+/* Loading state: inputs fade out upward */
+form.auth-loading input {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+  pointer-events: none;
+}
+
+form.auth-loading button {
+  pointer-events: none;
+}
+
+/* Success state: ripple expanding from button */
+@keyframes authRipple {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+@keyframes authCheckmark {
+  0% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+form.auth-success button {
+  position: relative;
+  border-color: var(--c-cyan);
+  background: var(--c-cyan);
+  color: var(--c-void);
+  pointer-events: none;
+}
+
+form.auth-success button::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--c-cyan);
+  animation: authRipple 400ms ease-out forwards;
+}
+
+form.auth-success .auth-checkmark {
+  display: inline-block;
+  color: var(--c-void);
+  font-size: 1.2em;
+  animation: authCheckmark 300ms ease-out forwards;
+}
+
+/* Failure state: inputs slide back in */
+form.auth-failure input {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+/* Lock screen: avatar ring pulse on success */
+@keyframes avatarPulse {
+  0% { box-shadow: 0 0 24px rgba(153, 163, 235, 0.35); }
+  50% { box-shadow: 0 0 40px rgba(0, 255, 242, 0.6); }
+  100% { box-shadow: 0 0 24px rgba(153, 163, 235, 0.35); }
+}
+
+form.auth-success #active-user-session-avatar {
+  border-color: var(--c-cyan);
+  animation: avatarPulse 600ms ease-in-out;
+}
+
+/* Reduced motion: instant state changes */
+@media (prefers-reduced-motion: reduce) {
+  .auth-spinner span { animation: none; opacity: 1; }
+  form.auth-loading input { transition: none; }
+  form.auth-success button::after { animation: none; }
+  form.auth-success .auth-checkmark { animation: none; }
+  form.auth-failure input { transition: none; }
+  form.auth-success #active-user-session-avatar { animation: none; }
+}
