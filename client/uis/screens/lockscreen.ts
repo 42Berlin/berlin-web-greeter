@@ -204,6 +204,14 @@ export class LockScreenUI extends UIScreen {
 		const logoutAfter = 90; // minutes
 		const lockedMinutesAgo = (Date.now() - this._lockedTime.getTime()) / 1000 / 60;
 		const timeRemaining = logoutAfter - lockedMinutesAgo;
+		
+		// Update progress bar
+		const progressBar = document.getElementById('logout-progress-bar') as HTMLDivElement;
+		if (progressBar) {
+			const percentage = Math.max(0, Math.min(100, (timeRemaining / logoutAfter) * 100));
+			progressBar.style.width = `${percentage}%`;
+		}
+		
 		if (timeRemaining <= 0.25) {
 			this._disableForm();
 			this._form.lockedTimeAgo.innerText = "Automated logout in progress...";

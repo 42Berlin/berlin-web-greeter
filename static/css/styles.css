@@ -879,6 +879,25 @@ form p {
   color: var(--color-text-secondary);
 }
 
+/* Logout progress bar */
+.logout-progress-container {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-color-darken);
+  border-radius: 2px;
+  margin-top: var(--padding);
+  overflow: hidden;
+  opacity: 0.6;
+}
+
+.logout-progress-bar {
+  height: 100%;
+  background: var(--c-cyan);
+  border-radius: 2px;
+  width: 100%;
+  transition: width 10s linear;
+}
+
 @keyframes wiggle {
   0%,
   100% {
