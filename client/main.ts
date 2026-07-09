@@ -3,7 +3,6 @@ import { Data } from './data';
 import { UI } from './ui';
 import { Authenticator } from './auth';
 import { Idler } from './idler';
-import { ParticleField } from './uis/particles';
 
 declare global {
 	interface Window {
@@ -167,8 +166,6 @@ async function initGreeter(): Promise<void> {
 	// Set up the topbar brightness control (only if this machine supports it)
 	setupBrightnessControl();
 
-	new ParticleField(window.ui.isLockScreen);
-
 	// Add reboot keybind to reboot on ctrl+alt+del
 	// only when the lock screen is not shown
 	document.addEventListener('keydown', (e) => {
@@ -228,33 +225,4 @@ window.addEventListener("GreeterReady", () => {
 	document.body.classList.add('boot-pending');
 	initGreeter();
 	playBootAnimation();
-
-	// Detect screen wake (DPMS): if no input for >5s and then input arrives, replay the boot fade-in.
-	// This catches the common case where the display was asleep and the user just moved the mouse or pressed a key.
-	const WAKE_IDLE_MS = 5000;
-	let lastInputTime = Date.now();
-	let wakeArmed = false;
-
-	const onInput = (): void => {
-		const now = Date.now();
-		if (wakeArmed && now - lastInputTime > WAKE_IDLE_MS) {
-			playBootAnimation();
-		}
-		lastInputTime = now;
-		wakeArmed = false;
-	};
-
-	document.addEventListener('mousemove', onInput, { passive: true });
-	document.addEventListener('keydown', onInput, { passive: true });
-	document.addEventListener('mousedown', onInput, { passive: true });
-
-	// Arm the wake detector after a short delay so the initial boot animation doesn't count as a "wake"
-	setTimeout(() => { wakeArmed = true; }, 3000);
-
-	// Also re-arm after periods of inactivity so the NEXT wake is detected
-	setInterval(() => {
-		if (Date.now() - lastInputTime > WAKE_IDLE_MS) {
-			wakeArmed = true;
-		}
-	}, 1000);
 });
