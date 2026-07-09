@@ -18,8 +18,66 @@ declare global {
 			decrease: () => void;
 			increase: () => void;
 		};
+		toggleDiagnostics(): void;
 	}
 }
+
+// IT diagnostics panel: toggled with Ctrl+Alt+I. Shows machine facts gathered by the
+// fetcher (data.json .diagnostics) plus live client-side facts.
+window.toggleDiagnostics = () => {
+	const existing = document.getElementById('diagnostics-overlay');
+	if (existing) {
+		existing.remove();
+		return;
+	}
+
+	const diag = window.data.dataJson?.diagnostics;
+	const fetchTime = window.data.dataJson?.fetch_time;
+	const rows: [string, string][] = [
+		['Hostname', window.data.hostname],
+		['Last user', window.data.dataJson?.last_user || '—'],
+		['IP', diag?.ip || '—'],
+		['MAC', diag?.mac || '—'],
+		['Uptime', diag?.uptime || '—'],
+		['Disk /', diag?.disk || '—'],
+		['Greeter', `${window.data.pkgName} v${window.data.pkgVersion}`],
+		['Config version', diag?.config_version || '—'],
+		['Last data fetch', fetchTime ? new Date(fetchTime).toLocaleString() : '—'],
+		['Network', navigator.onLine ? 'online' : 'offline'],
+	];
+
+	const overlay = document.createElement('div');
+	overlay.id = 'diagnostics-overlay';
+	overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+	const panel = document.createElement('div');
+	panel.className = 'diagnostics-panel';
+
+	const title = document.createElement('h2');
+	title.textContent = '// diagnostics';
+	panel.appendChild(title);
+
+	const table = document.createElement('div');
+	table.className = 'diagnostics-table';
+	for (const [key, value] of rows) {
+		const k = document.createElement('span');
+		k.className = 'diag-key';
+		k.textContent = key;
+		const v = document.createElement('span');
+		v.className = 'diag-val';
+		v.textContent = value;
+		table.append(k, v);
+	}
+	panel.appendChild(table);
+
+	const hint = document.createElement('p');
+	hint.className = 'diagnostics-hint';
+	hint.textContent = 'Ctrl+Alt+I or click outside to close';
+	panel.appendChild(hint);
+
+	overlay.appendChild(panel);
+	document.body.appendChild(overlay);
+};
 
 // use with await window.sleep(1000); to sleep for 1 second
 async function sleep(ms: number): Promise<void> {
@@ -63,6 +121,40 @@ window.brightness = {
 	}
 };
 
+// Topbar brightness control: a button that toggles a slider setting absolute brightness.
+function setupBrightnessControl(): void {
+	const control = document.getElementById('brightness-control');
+	const button = document.getElementById('brightness-button');
+	const slider = document.getElementById('brightness-slider') as HTMLInputElement | null;
+	if (!control || !button || !slider) {
+		return;
+	}
+
+	// Always show it in the topbar (can_access_brightness is unreliable on some
+	// nody-greeter setups); the set below is a no-op if brightness isn't controllable.
+	control.style.display = 'inline-flex';
+
+	// Initialise the slider to the current brightness, if reported
+	const current = window.lightdm?.brightness;
+	if (typeof current === 'number' && current >= 0) {
+		slider.value = String(current);
+	}
+
+	button.addEventListener('click', (e) => {
+		e.stopPropagation();
+		control.classList.toggle('open');
+	});
+	slider.addEventListener('input', () => {
+		window.lightdm?.brightness_set(parseInt(slider.value, 10));
+	});
+	// Close the popover when clicking anywhere else
+	document.addEventListener('click', (e) => {
+		if (!control.contains(e.target as Node)) {
+			control.classList.remove('open');
+		}
+	});
+}
+
 async function initGreeter(): Promise<void> {
 	// Initialize local classes
 	window.data = new Data();
@@ -70,6 +162,9 @@ async function initGreeter(): Promise<void> {
 	window.ui = new UI(window.data, window.auth);
 	window.idler = new Idler(window.ui.isLockScreen);
 	window.debugKeys = false;
+
+	// Set up the topbar brightness control (only if this machine supports it)
+	setupBrightnessControl();
 
 	// Add reboot keybind to reboot on ctrl+alt+del
 	// only when the lock screen is not shown
@@ -92,6 +187,9 @@ async function initGreeter(): Promise<void> {
 					window.debugKeys = (window.debugKeys) ? false : true;
 					window.ui.setDebugInfo(`Debug keys: ${(window.debugKeys ? 'enabled' : 'disabled')}`);
 					return;
+				case 'i': // Ctrl + Alt + I = IT diagnostics panel
+					window.toggleDiagnostics();
+					break;
 			}
 		}
 		else { // Regular keybinds

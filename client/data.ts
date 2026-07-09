@@ -89,6 +89,14 @@ export interface ExamForHost {
 	end_at: string;
 }
 
+export interface Diagnostics {
+	ip: string;
+	mac: string;
+	uptime: string;
+	disk: string;
+	config_version: string; // VERSION from berlin.conf
+}
+
 export interface DataJson {
 	hostname: string;
 	events: Event42[];
@@ -99,6 +107,10 @@ export interface DataJson {
 	bubble_message: string;
 	background_video: boolean;
 	mode: string;
+	default_wallpaper: string; // wallpaper image path for default mode; empty = animated gradient
+	login: string; // "enabled" | "disabled" (maintenance mode)
+	diagnostics?: Diagnostics; // machine facts for the IT panel
+	last_user: string; // last real user who logged in on this machine ("" if none)
 }
 
 
@@ -129,7 +141,7 @@ export class Data {
 		this.userImage = new GreeterImage(PATH_USER_IMAGE);
 		this.userDefaultImage = new GreeterImage(PATH_USER_DEFAULT_IMAGE);
 
-		// Fetch data.json every 5 minutes and fetch it now
+		// Fetch data.json every minute and fetch it now
 		setInterval(() => this._refetchDataJson(), this._dataJsonFetchInterval);
 		this._refetchDataJson();
 	}
@@ -198,8 +210,23 @@ export class Data {
 				}
 
 				// Fallback for missing mode field
-				if (!("background_video" in data)) {
+				if (!("mode" in data)) {
 					data.mode = "default";
+				}
+
+				// Fallback for missing default_wallpaper field
+				if (!("default_wallpaper" in data)) {
+					data.default_wallpaper = "";
+				}
+
+				// Fallback for missing login field (maintenance mode)
+				if (!("login" in data)) {
+					data.login = "enabled";
+				}
+
+				// Fallback for missing last_user field
+				if (!("last_user" in data)) {
+					data.last_user = "";
 				}
 
 				this._dataJson = data;

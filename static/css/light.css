@@ -8,8 +8,19 @@
 	--color-black: #000000;
 	--color-white: #FFFFFF;
 
+	/* 42 Berlin brand palette (from the website) */
+	--c-void: #07040F;
+	--c-brand-purple: #8E44AD;
+	--c-lilac: #99A3EB;
+	--c-cyan: #00FFF2;
+	--c-fuchsia: #E018A3;
+	--c-brand-dark: #050505;
+	/* Interactive accent used on the auth forms (buttons, focus).
+	   A darker cyan for contrast on the light background. */
+	--color-accent: #00BABC;
+
 	/* Theme colors */
-	--color-primary: var(--color-blue);
+	--color-primary: var(--c-brand-purple);
 
 	/* Text colors */
 	--color-text-primary: #1A1A1A;

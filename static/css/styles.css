@@ -1,13 +1,22 @@
+/* 42 Berlin brand fonts are inlined (base64) in css/fonts.css — the greeter's
+   CSS url() path resolution is unreliable, so we avoid external font files. */
+
 :root {
   /* Colors can be found in css/dark.css and css/light.css */
+
+  /* Brand fonts */
+  --font-main: 'Swiza', 'Space Grotesk', sans-serif;
+  --font-code: 'Space Mono', monospace;
 
   /* Generic settings */
   --default-bg-img: url("../assets/default-wallpaper.png"); /* relative to html file, set in JS */
   --blur-bg-filter: blur(5px);
   --blur-bg-filter-lock-screen: blur(25px);
   --border-radius: 4px;
+  --radius-card: 16px; /* rounded cards/notices, matching the website */
+  --radius-pill: 100px; /* pill buttons */
   --padding: 8px;
-  --header-footer-height: 31px;
+  --header-footer-height: 44px;
   --zoom: 1;
 }
 
@@ -42,7 +51,7 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   font-size: 16px;
-  font-family: sans-serif;
+  font-family: var(--font-main);
   overflow: hidden;
   height: 100%;
 }
@@ -52,7 +61,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #000;
+  background-color: var(--color-bg);
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -75,6 +84,45 @@ body {
   display: none;
 }
 
+/* Animated "moving color" background (ported from the 42 Berlin website hero).
+   Shown by WallpaperUI only when no wallpaper image is set; toggled via display. */
+#gradient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0; /* behind content, same layer as the video/wallpaper */
+  overflow: hidden;
+  background-color: #0d0820;
+  pointer-events: none;
+  display: none;
+}
+
+#gradient-bg::after {
+  content: '';
+  position: absolute;
+  /* Oversized so the heavy warping never exposes the edges */
+  width: 180vw;
+  height: 180vh;
+  top: -40vh;
+  left: -40vw;
+  background: radial-gradient(ellipse at 50% 50%, rgba(153, 163, 235, 0.6) 0%, transparent 45%),
+              radial-gradient(ellipse at 60% 40%, rgba(110, 40, 230, 0.7) 0%, transparent 65%);
+  filter: blur(80px);
+  transform-origin: 50% 50%;
+  will-change: transform;
+  animation: intenseLiquidFlow 18s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+}
+
+@keyframes intenseLiquidFlow {
+  0%   { transform: translate(-5%, -5%) scale(1.1, 1.4) rotate(0deg); }
+  33%  { transform: translate(12%, -8%) scale(1.5, 0.9) rotate(35deg); }
+  66%  { transform: translate(-10%, 12%) scale(0.9, 1.6) rotate(-25deg); }
+  100% { transform: translate(8%, 15%) scale(1.6, 1.1) rotate(55deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #gradient-bg::after { animation: none; }
+}
+
 #blur-filter {
   /* for wallpapers */
   position: fixed;
@@ -91,61 +139,48 @@ body {
 /* Offline notification                      */
 /* ***************************************** */
 
-@keyframes flash {
+/* Branded attention pulse for notices (offline banner). Uses --notice-glow set per element. */
+@keyframes noticePulse {
   0%,
   100% {
-    opacity: 0.8;
+    box-shadow: 0 0 16px 0 var(--notice-glow);
   }
   50% {
-    opacity: 1;
+    box-shadow: 0 0 36px 4px var(--notice-glow);
   }
 }
 
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 1);
-  }
-  70% {
-    box-shadow: 0 0 0 28px rgba(255, 0, 0, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-  }
-}
-
-#offline-img-placeholder {
-  position: absolute;
-  top: 20px;
-  right: 160px;
-  width: 192px;
-  height: 192px;
-  background-image: url("../assets/offline.gif");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+/* Offline overlay: blurs the whole screen and centers the notice */
+#offline-message {
+  display: none; /* toggled to flex when offline */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  backdrop-filter: blur(4px) brightness(0.85);
+  background-color: rgba(0, 0, 0, 0.2);
+  z-index: 9997;
+  /* Covers the whole screen and blocks interaction with the login form behind it */
 }
 
 #offline-text {
-  position: absolute;
-  top: 450px;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center; /* Optional */
-  color: var(--color-black);
-  background-color: var(--bg-color-error);
-  padding: calc(var(--padding) * 2);
-  font-weight: bold;
+  max-width: 600px;
+  color: var(--color-text-primary);
+  background: var(--bg-color-darken-strong);
+  padding: calc(var(--padding) * 3) calc(var(--padding) * 4);
+  font-family: var(--font-code);
+  font-weight: 700;
   font-size: large;
-  border-radius: var(--border-radius);
-  outline: 4px solid var(--color-bg);
-  animation: flash 1s infinite, pulse 1s infinite;
-}
-
-#offline-message {
-  display: none;
-  text-align: center;
-  transition: opacity 2s ease-in-out;
-  z-index: 2;
+  line-height: 1.4;
+  border: 1px solid var(--c-fuchsia);
+  border-radius: var(--radius-card);
+  --notice-glow: rgba(224, 24, 163, 0.45);
+  animation: noticePulse 1.8s ease-in-out infinite;
 }
 
 /* ***************************************** */
@@ -164,14 +199,42 @@ body {
 }
 
 #game-frame {
-  position: absolute;
-  border: none;
-  top: 0px;
-  left: 0px;
-  width: 1920px;
-  height: 1080px;
-  z-index: 9999;
-  visibility: hidden; /* Initially hidden */
+  display: none; /* shown (as a window below the offline text) when the game starts */
+  border: 2px solid var(--c-cyan);
+  border-radius: var(--radius-card);
+  width: 640px;
+  max-width: 90vw;
+  height: 320px;
+  margin-top: calc(var(--padding) * 3);
+  background: var(--color-bg);
+  box-shadow: 0 0 24px rgba(0, 255, 242, 0.25);
+}
+
+/* Maintenance notice (LOGIN=disabled) */
+#maintenance {
+  display: none; /* shown as flex when maintenance mode is active */
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 480px;
+  padding: calc(var(--padding) * 4);
+  background: var(--bg-color-darken-strong);
+  backdrop-filter: var(--blur-bg-filter);
+  border: 1px solid var(--c-fuchsia);
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 32px rgba(224, 24, 163, 0.25);
+}
+
+#maintenance h2 {
+  font-family: var(--font-code);
+  color: var(--c-fuchsia);
+  margin: 0 0 var(--padding) 0;
+}
+
+#maintenance p {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
 }
 
 #message-wrapper {
@@ -179,19 +242,38 @@ body {
   margin-top: calc(var(--header-footer-height) * 2);
 }
 
+#message {
+  max-width: 600px;
+}
+
+/* The tech-team message is shown on the login screen only; hide it on the lock screen. */
+body.lock-screen #message-wrapper {
+  display: none;
+}
+
 #message:empty {
   display: none; /* hide empty message */
 }
 
 #message:not(:empty) {
-  padding: calc(var(--padding) * 2);
-  color: var(--color-bg);
+  padding: calc(var(--padding) * 2) calc(var(--padding) * 3);
+  color: var(--color-text-primary);
+  font-family: var(--font-code);
   font-size: large;
-  font-weight: bold;
-  background-color: var(--color-primary);
-  border-radius: var(--border-radius);
-  outline: 4px solid var(--color-bg);
-  animation: flash 1s infinite, pulse 1s infinite;
+  font-weight: 700;
+  background: var(--bg-color-darken-strong);
+  backdrop-filter: var(--blur-bg-filter);
+  border: 1px solid var(--c-cyan);
+  border-left: 4px solid var(--c-cyan);
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 24px rgba(0, 255, 242, 0.25);
+  text-shadow: var(--text-shadow);
+}
+
+/* Terminal-style eyebrow before the tech-team message */
+#message:not(:empty)::before {
+  content: "// ";
+  color: var(--c-cyan);
 }
 
 /* ***************************************** */
@@ -200,7 +282,7 @@ body {
 
 #bubble-message-wrapper {
   position: absolute;
-  bottom: 80px;
+  bottom: 48px;
   left: 100px;
   width: 300px;
   height: 200px;
@@ -211,8 +293,9 @@ body {
 
 #bubble-message-content {
   display: flex;
-  flex-direction: column;
-  align-items: left;
+  flex-direction: row;
+  align-items: center;
+  gap: calc(var(--padding) * 2);
   width: 100%;
   position: relative;
   z-index: 3;
@@ -223,11 +306,10 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  flex-shrink: 0;
   width: 100px;
   height: 100px;
   background-color: rgba(255, 255, 255, 0.1);
-  margin-top: 50px;
-  margin-left: 50px;
   border-radius: 8px;
   z-index: 3;
 }
@@ -238,60 +320,39 @@ body {
   font-size: 14pt;
   line-height: 1.2;
   font-weight: 200;
-  width: 240px;
-  height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   text-align: left;
-  position: absolute;
-  left: 175px;
   z-index: 3;
-}
-
-#bubble-bg-placeholder {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 450px;
-  height: 281px;
-  background-image: url("../assets/bubble-bg.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 2;
 }
 
 /* ***************************************** */
 /* Header and footer                         */
 /* ***************************************** */
 
-header {
+/* Floating rounded glass bar, echoing the website nav (kept at the current height) */
+header,
+footer {
   box-sizing: border-box;
-  width: 100%;
+  align-self: stretch; /* span the body width (minus margin) despite body's align-items: center */
   height: var(--header-footer-height);
-  padding: var(--padding) var(--padding);
-  backdrop-filter: var(--blur-bg-filter);
+  margin: var(--padding);
+  padding: 0 calc(var(--padding) * 2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(24px) saturate(150%);
   background-color: var(--bg-color-darken-strong);
   color: var(--color-text-primary);
   font-size: small;
   text-shadow: var(--text-shadow);
   white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 footer {
   display: none;
-  box-sizing: border-box;
-  width: 100%;
-  height: var(--header-footer-height);
-  padding: var(--padding) var(--padding);
-  backdrop-filter: var(--blur-bg-filter);
-  background-color: var(--bg-color-darken-strong);
   color: var(--color-text-secondary);
-  font-size: small;
-  text-shadow: var(--text-shadow);
-  white-space: nowrap;
 }
 
 /* Disable line breaks in header and footer */
@@ -302,75 +363,175 @@ footer br::after {
   content: " ";
 }
 
-.horibar-left {
-  float: left;
-  text-align: left;
-  line-height: 1rem;
-}
-
+.horibar-left,
 .horibar-right {
-  float: right;
-  text-align: right;
-}
-
-header span,
-footer span {
-  margin: 0 var(--padding);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--padding) * 1.5);
 }
 
 .header-button {
-  background: none;
-  border: none;
+  background: var(--bg-color-lighten);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--color-text-primary);
-  font-size: small;
-  font-family: inherit;
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: 0.5px;
   text-shadow: var(--text-shadow);
   cursor: pointer;
-  padding: 2px 6px;
-  border-radius: var(--border-radius);
-  transition: background-color 0.1s, color 0.1s;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.1s;
 }
 
 .header-button:hover {
-  background-color: var(--bg-color-lighten);
+  background-color: var(--c-cyan);
+  border-color: var(--c-cyan);
+  color: var(--c-void);
 }
 
 .header-button:active {
   transform: scale(0.95);
 }
 
+/* Brightness control: a topbar button that reveals an inline slider inside the bar */
+#brightness-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--padding);
+}
+
+#brightness-slider {
+  display: none; /* shown inline (in the bar) when #brightness-control has .open */
+  width: 120px;
+  vertical-align: middle;
+  accent-color: var(--c-cyan);
+}
+
+#brightness-control.open #brightness-slider {
+  display: inline-block;
+}
+
+/* Network status dot (green online / red offline) */
+#info-network {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-text-tertiary);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+#info-network.online {
+  background-color: #39D88F;
+  box-shadow: 0 0 8px rgba(57, 216, 143, 0.7);
+}
+
+#info-network.offline {
+  background-color: var(--color-red);
+  box-shadow: 0 0 8px rgba(255, 44, 44, 0.7);
+}
+
+/* IT diagnostics panel (Ctrl+Alt+I) */
+#diagnostics-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px) brightness(0.85);
+  z-index: 10001;
+}
+
+.diagnostics-panel {
+  min-width: 420px;
+  max-width: 90vw;
+  padding: calc(var(--padding) * 4);
+  background: var(--bg-color-darken-strong);
+  border: 1px solid var(--c-lilac);
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 32px rgba(153, 163, 235, 0.25);
+  color: var(--color-text-primary);
+}
+
+.diagnostics-panel h2 {
+  font-family: var(--font-code);
+  color: var(--c-cyan);
+  margin: 0 0 calc(var(--padding) * 2) 0;
+}
+
+.diagnostics-table {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--padding) calc(var(--padding) * 2);
+  font-family: var(--font-code);
+  font-size: 0.85rem;
+}
+
+.diag-key {
+  color: var(--color-text-secondary);
+}
+
+.diag-val {
+  color: var(--color-text-primary);
+  text-align: right;
+  word-break: break-all;
+}
+
+.diagnostics-hint {
+  margin: calc(var(--padding) * 2) 0 0 0;
+  font-size: small;
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
 /* Custom confirmation dialog */
+/* Native <dialog> element (opened with showModal): traps focus + inerts the page behind it.
+   These resets neutralise the UA dialog defaults so it fills the screen like an overlay. */
 .confirm-dialog {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  max-width: 100%;
+  max-height: 100%;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px) brightness(0.85);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10000;
 }
 
+.confirm-dialog::backdrop {
+  background: transparent;
+}
+
 .confirm-dialog-content {
   background-color: var(--bg-color-darken-strong);
-  backdrop-filter: var(--blur-bg-filter);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--border-radius);
-  padding: calc(var(--padding) * 3);
-  max-width: 400px;
+  border: 1px solid var(--c-lilac);
+  border-radius: var(--radius-card);
+  padding: calc(var(--padding) * 4);
+  max-width: 420px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 32px rgba(153, 163, 235, 0.25);
 }
 
 .confirm-dialog-message {
   color: var(--color-text-primary);
+  font-family: var(--font-main);
   font-size: 16px;
-  margin-bottom: calc(var(--padding) * 2);
+  margin-bottom: calc(var(--padding) * 3);
   text-shadow: var(--text-shadow);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .confirm-dialog-buttons {
@@ -379,33 +540,39 @@ footer span {
   gap: calc(var(--padding) * 2);
 }
 
+/* Pill buttons matching the website CTA / auth buttons */
 .confirm-dialog-button {
   background: none;
   border: 1px solid var(--color-text-secondary);
   color: var(--color-text-secondary);
-  padding: calc(var(--padding) / 2) var(--padding);
-  border-radius: var(--border-radius);
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
+  font-family: var(--font-code);
   font-size: 14px;
-  min-width: 80px;
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: 1px;
+  min-width: 96px;
   text-shadow: var(--text-shadow);
-  transition: all 0.1s;
+  transition: color 0.3s, background-color 0.3s, box-shadow 0.3s, transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .confirm-dialog-button:hover {
   color: var(--color-text-primary);
   border-color: var(--color-text-primary);
-  background-color: var(--bg-color-darken);
+  transform: translateY(-2px);
 }
 
 .confirm-dialog-button.primary {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .confirm-dialog-button.primary:hover {
-  background-color: var(--color-primary);
-  color: var(--color-bg);
+  background-color: var(--color-accent);
+  color: var(--c-brand-dark);
+  box-shadow: 0 0 20px rgba(0, 255, 242, 0.4);
 }
 
 #info-debug {
@@ -432,7 +599,8 @@ footer span {
 
 #logo-wrapper.logo-top-center {
   width: 100%;
-  top: 10%;
+  height: 16%;
+  top: 17%;
   left: 0;
   align-items: center;
   justify-content: center;
@@ -471,7 +639,7 @@ footer span {
 #logo {
   display: inline-block;
   height: 100%;
-  max-height: 250px;
+  max-height: 170px;
 }
 
 /* ***************************************** */
@@ -501,39 +669,42 @@ form#exam-form {
   max-width: 792px; /* 3x 264px */
 }
 
+/* Terminal-style inputs (Space Mono, cyan focus), coherent with the website contact form */
 form input {
   display: block;
   box-sizing: border-box;
   width: 100%;
   margin: var(--padding) auto;
-  border-style: solid;
-  border-width: 1px;
-  border-color: var(--bg-color-darken-strong);
-  border-radius: var(--border-radius);
-  padding: var(--padding) 0 var(--padding) var(--padding);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: calc(var(--padding) * 1.25) var(--padding);
   background-color: var(--bg-color-darken-strong);
   backdrop-filter: var(--blur-bg-filter);
   color: var(--color-text-primary);
-  caret-color: var(--color-text-primary);
+  caret-color: var(--color-accent);
+  font-family: var(--font-code);
+  font-size: 0.9em;
   text-align: left;
   text-shadow: var(--text-shadow);
   user-select: text !important;
   cursor: text;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 form input:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 12px rgba(0, 255, 242, 0.2);
 }
 
 form input:disabled {
-  cursor: not-allowed;
-  color: var(--color-text-tertiary);
   cursor: default;
+  color: var(--color-text-tertiary);
 }
 
 form input::placeholder {
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-code);
 }
 
 form input.wiggle {
@@ -555,19 +726,19 @@ form input.wiggle {
 
 .caps-lock-indicator {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   line-height: 26px;
   text-align: center;
   font-size: 15px;
   font-weight: bold;
-  left: -32px;
+  left: -34px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-white);
-  background-color: var(--color-primary);
+  color: var(--c-brand-dark);
+  background-color: var(--c-cyan);
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 12px rgba(0, 255, 242, 0.5);
   z-index: 10;
 }
 
@@ -579,36 +750,61 @@ form input {
   position: relative;
 }
 
+/* Terminal-style pill button, coherent with the 42 Berlin website CTA */
 form button {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   position: relative;
-  margin: 0 auto 0 auto;
-  text-align: center;
-  border: none;
-  background: none;
-  padding: 0 var(--padding);
-  color: var(--color-text-secondary);
-  font-size: 3em;
+  width: fit-content;
+  margin: calc(var(--padding) * 1.5) auto 0 auto;
+  padding: 12px 32px;
+  /* execute_send() button colors, but a round pill sized to its content */
+  border: 1px solid var(--c-cyan);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--c-cyan);
+  font-family: var(--font-code);
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  text-shadow: var(--text-shadow);
+  transition: color 0.3s, background-color 0.3s, box-shadow 0.3s, transform 0.3s ease;
+}
+
+/* The sliding arrow icon */
+form button .term-arrow {
+  transition: transform 0.3s ease;
 }
 
 form button:not(:disabled):hover,
 form button:not(:disabled):focus {
-  cursor: pointer;
   outline: none;
-  color: var(--color-text-primary);
-  transition: color 0.1s;
+  /* execute_send() hover: cyan fill, void text, cyan glow */
+  color: var(--c-void);
+  background: var(--c-cyan);
+  border-color: var(--c-cyan);
+  box-shadow: 0 0 15px rgba(0, 255, 242, 0.3);
+}
+
+form button:not(:disabled):hover .term-arrow,
+form button:not(:disabled):focus .term-arrow {
+  transform: translateX(4px);
 }
 
 form button:disabled {
   cursor: default;
-  color: var(--bg-color-disabled-button);
+  color: var(--color-text-tertiary);
+  background: transparent;
+  border-color: var(--color-text-tertiary);
   text-shadow: none;
+  box-shadow: none;
 }
 
 form button:not(:disabled):active {
-  transform: scale(0.95);
+  transform: translateY(0) scale(0.98);
 }
 
 form#lock-form {
@@ -623,6 +819,9 @@ form#lock-form {
   object-fit: cover;
   border-radius: 50%;
   background-color: var(--bg-color-darken-strong);
+  /* Brand ring, echoing the lilac/cyan accents of the website */
+  border: 2px solid var(--c-lilac);
+  box-shadow: 0 0 24px rgba(153, 163, 235, 0.35);
 }
 
 /* user display name, "reserved for exam" text */
@@ -633,11 +832,12 @@ form h3 {
   text-shadow: var(--text-shadow);
 }
 
-/* user login name */
+/* user login name (terminal style: monospace + lilac accent) */
 form h4 {
   font-weight: normal;
   margin: calc(var(--padding) / 2) 0 calc(var(--padding) * 2) 0;
-  color: var(--color-text-secondary);
+  font-family: var(--font-code);
+  color: var(--c-lilac);
   text-shadow: var(--text-shadow);
 }
 
@@ -655,7 +855,7 @@ form p {
 }
 
 .extra-text {
-  margin-top: calc(var(--padding));
+  margin-top: calc(var(--padding) * 4);
   font-size: small;
   color: var(--color-text-secondary);
 }
@@ -684,11 +884,75 @@ form p {
 
 aside {
   position: absolute;
-  top: var(--header-footer-height);
+  top: calc(var(--header-footer-height) + var(--padding) * 2); /* clear the floating header */
+  bottom: var(--padding); /* bounded height so the list can scroll instead of overflowing */
   right: 0;
   width: calc(30vw * var(--zoom));
   max-width: 400px;
   padding: var(--padding);
+  display: flex;
+  flex-direction: column;
+}
+
+/* The event list scrolls; the next-event banner above it stays put */
+#intra-calendar {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+#intra-calendar::-webkit-scrollbar {
+  width: 4px;
+}
+
+#intra-calendar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* Next-event countdown banner */
+#next-event {
+  flex-direction: column;
+  gap: 4px;
+  padding: calc(var(--padding) * 2);
+  /* Extra breathing room above and below so it reads as separate from the list */
+  margin: calc(var(--padding) * 2) 0 calc(var(--padding) * 4) 0;
+  background: var(--bg-color-darken-strong);
+  backdrop-filter: var(--blur-bg-filter);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--c-cyan);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#next-event:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 242, 0.2);
+}
+
+.next-event-label {
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--c-cyan);
+}
+
+.next-event-name {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.next-event-time,
+.next-event-location {
+  font-family: var(--font-code);
+  font-size: small;
+  color: var(--color-text-secondary);
 }
 
 .calendar-event {
@@ -704,7 +968,8 @@ aside {
   text-shadow: var(--text-shadow);
   backdrop-filter: var(--blur-bg-filter);
   margin: var(--padding) 0;
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-card);
+  overflow: hidden; /* clip the colored date column to the rounded corners */
   cursor: pointer;
 }
 
@@ -735,7 +1000,6 @@ aside {
   width: 48px;
   flex-grow: 0;
   flex-shrink: 0;
-  border-radius: var(--border-radius);
   border-left: 4px solid var(--event-color);
 }
 
@@ -831,22 +1095,21 @@ aside {
 dialog {
   background: var(--bg-color-darken-strong);
   backdrop-filter: var(--blur-bg-filter);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-card);
   color: var(--color-text-primary);
   width: calc(50vw * var(--zoom));
   max-width: 700px;
   padding: var(--padding);
   outline: 0;
   border: solid 1px var(--color-primary);
-  box-shadow: var(--text-shadow);
+  box-shadow: 0 0 32px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   user-select: none;
 }
 
 dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
-  /* disabled for performance reasons */
-  /* backdrop-filter: var(--blur-bg-filter); */
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px) brightness(0.85);
 }
 
 dialog.calendar-event-dialog {
@@ -854,11 +1117,15 @@ dialog.calendar-event-dialog {
   padding: 0;
 }
 
+/* Colored header (keeps the intra event color) with dark text + terminal mono label */
 dialog.calendar-event-dialog .calendar-event-date {
   background-color: var(--event-color);
+  color: var(--c-void);
+  font-family: var(--font-code);
   text-transform: uppercase;
+  letter-spacing: 1px;
   font-size: small;
-  padding: var(--padding) var(--padding) 0 var(--padding);
+  padding: calc(var(--padding) * 1.5) calc(var(--padding) * 1.5) var(--padding);
 }
 
 dialog.calendar-event-dialog .calendar-event-date > span::after {
@@ -871,37 +1138,48 @@ dialog.calendar-event-dialog .calendar-event-spots:not(:empty)::after {
 
 dialog.calendar-event-dialog .calendar-event-title {
   background-color: var(--event-color);
-  font-weight: bold;
-  padding: calc(var(--padding) / 4) var(--padding) var(--padding) var(--padding);
+  color: var(--c-void);
+  font-family: var(--font-main);
+  font-weight: 700;
+  font-size: 1.1em;
+  padding: 0 calc(var(--padding) * 1.5) calc(var(--padding) * 1.5);
 }
 
 dialog.calendar-event-dialog .calendar-event-description {
-  padding: var(--padding);
+  padding: calc(var(--padding) * 2) calc(var(--padding) * 1.5);
   overflow: auto;
   max-height: calc(50vh * var(--zoom));
+  line-height: 1.5;
   user-select: text;
 }
 
 dialog.calendar-event-dialog .calendar-event-details {
-  padding: var(--padding);
+  padding: 0 calc(var(--padding) * 1.5) calc(var(--padding) * 1.5);
   text-align: right;
+  font-family: var(--font-code);
   font-size: small;
+  color: var(--color-text-secondary);
 }
 
 dialog.calendar-event-dialog .dialog-close-button {
   position: absolute;
-  top: 0px;
-  right: 0px;
+  top: var(--padding);
+  right: var(--padding);
   cursor: pointer;
-  background: none;
+  background: rgba(0, 0, 0, 0.25);
   border: none;
+  border-radius: 50%;
   padding: 0;
-  width: calc(var(--padding) * 3);
-  height: calc(var(--padding) * 3);
-  color: var(--bg-color-lighten);
+  width: calc(var(--padding) * 3.5);
+  height: calc(var(--padding) * 3.5);
+  font-size: 1.2em;
+  line-height: 1;
+  color: var(--color-white);
   outline: 0;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 dialog.calendar-event-dialog .dialog-close-button:hover {
-  color: var(--color-text-primary);
+  background: var(--c-cyan);
+  color: var(--c-void);
 }

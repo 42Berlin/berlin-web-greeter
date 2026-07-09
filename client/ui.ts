@@ -23,6 +23,7 @@ export class UI {
 	private _logo: HTMLImageElement;
 	private _message: HTMLElement;
 	private _bubbleMessage: HTMLElement;
+	private _maintenance: HTMLElement;
 	private _scalingFactor: number = 1;
 
 	public constructor(data: Data, auth: Authenticator) {
@@ -30,6 +31,7 @@ export class UI {
 		this._logo = document.getElementById('logo') as HTMLImageElement;
 		this._message = document.getElementById('message') as HTMLElement;
 		this._bubbleMessage = document.getElementById('bubble-message') as HTMLElement;
+		this._maintenance = document.getElementById('maintenance') as HTMLElement;
 
 		// Set up DPI scaling
 		this.applyHiDpiScaling();
@@ -46,6 +48,7 @@ export class UI {
 			// Active session found, show lock screen form
 			this._lockScreen = new LockScreenUI(auth, activeSession);
 			this._isLockScreen = true;
+			document.body.classList.add('lock-screen');
 			this._logo.style.display = 'none';
 			this._lockScreen.showForm();
 		}
@@ -102,32 +105,30 @@ export class UI {
 		this._infoBars.setDebugInfo(info);
 	}
 
-	public setMessage(message: string): void {
-		// Remove any HTML tags from the message
-		message = message.replace(/(<([^>]+)>)/gi, "");
-		// Replace newlines with <br> tags
+	/**
+	 * Render a message with a tiny, SAFE markup subset (*bold*, _italic_, newlines).
+	 * The raw text is HTML-escaped first, so any tags in the source become inert text
+	 * and cannot inject markup/scripts — only our own <b>/<i>/<br> tags are introduced.
+	 */
+	private static _renderMarkup(message: string): string {
+		// Escape HTML so source content can never be interpreted as markup
+		message = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		// Newlines -> <br>
 		message = message.replace(/\n/g, '<br>');
-		// Parse *bold* and _italic_ text
+		// *bold* and _italic_
 		message = message.replace(/\*(.*?)\*/g, '<b>$1</b>');
 		message = message.replace(/_(.*?)_/g, '<i>$1</i>');
-		// Replace multiple spaces with non-breaking spaces
+		// Collapse repeated spaces to keep formatting
 		message = message.replace(/  +/g, '&nbsp;&nbsp;');
+		return message;
+	}
 
-		this._message.innerHTML = message;
+	public setMessage(message: string): void {
+		this._message.innerHTML = UI._renderMarkup(message);
 	}
 
 	public setBubbleMessage(message: string): void {
-		// Remove any HTML tags from the message
-		message = message.replace(/(<([^>]+)>)/gi, "");
-		// Replace newlines with <br> tags
-		message = message.replace(/\n/g, '<br>');
-		// Parse *bold* and _italic_ text
-		message = message.replace(/\*(.*?)\*/g, '<b>$1</b>');
-		message = message.replace(/_(.*?)_/g, '<i>$1</i>');
-		// Replace multiple spaces with non-breaking spaces
-		message = message.replace(/  +/g, '&nbsp;&nbsp;');
-
-		this._bubbleMessage.innerHTML = message;
+		this._bubbleMessage.innerHTML = UI._renderMarkup(message);
 	}
 
 	public logoutActiveSession(): void {
@@ -173,6 +174,20 @@ export class UI {
 	public checkForExamMode(): boolean {
 		if (this.isLockScreen) { // Don't show exam mode on the lock screen
 			return false;
+		}
+
+		// Maintenance mode (LOGIN=disabled): block login entirely and show a notice instead
+		if (window.data.dataJson?.login === "disabled") {
+			this._loginScreen?.hideForm();
+			this._examModeScreen?.hideForm();
+			if (this._maintenance) this._maintenance.style.display = "flex";
+			return false;
+		}
+		else if (this._maintenance && this._maintenance.style.display !== "none") {
+			// Coming back from maintenance: hide the notice and restore the login form
+			// (showForm is guarded by its own _formShown flag, so this is a no-op in normal operation).
+			this._maintenance.style.display = "none";
+			this._loginScreen?.showForm();
 		}
 
 		if (window.data.dataJson === undefined) { // If no data is available, show the regular login screen

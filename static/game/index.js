@@ -378,6 +378,14 @@
             this.distanceMeter = new DistanceMeter(this.canvas,
                 this.spriteDef.TEXT_SPRITE, this.dimensions.WIDTH);
 
+            // Load this computer's persisted high score (falls back to in-memory if storage is unavailable)
+            try {
+                this.highestScore = parseInt(localStorage.getItem('trex_high_score'), 10) || 0;
+                if (this.highestScore > 0) {
+                    this.distanceMeter.setHighScore(this.highestScore);
+                }
+            } catch (e) { /* localStorage unavailable: keep the in-memory high score only */ }
+
             // Draw t-rex
             this.tRex = new Trex(this.canvas, this.spriteDef.TREX);
 
@@ -800,6 +808,10 @@
             if (this.distanceRan > this.highestScore) {
                 this.highestScore = Math.ceil(this.distanceRan);
                 this.distanceMeter.setHighScore(this.highestScore);
+                // Persist the new record for this computer
+                try {
+                    localStorage.setItem('trex_high_score', String(this.highestScore));
+                } catch (e) { /* localStorage unavailable: high score stays in memory only */ }
             }
 
             // Reset the time clock.

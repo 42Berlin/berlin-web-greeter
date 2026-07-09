@@ -141,3 +141,5 @@ server/configs/certs/*
 server/build/*
 static/data.json
 static/greeter.css
+
+_references/

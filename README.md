@@ -10,7 +10,7 @@ A greeter theme for [nody-greeter](https://github.com/JezerM/nody-greeter)/web-g
 - Prevent students from signing in with their regular account during exams
 - Customizable background image and logo
 - Greeter can be used as a lock screen when someone is already logged in (replacement for ft_lock)
-- Automatically log students out after 42 minutes of inactivity, either in-session or on the lock screen
+- Automatically log students out after 90 minutes of inactivity, either in-session or on the lock screen
 - Display user's profile picture (from `~/.face`) on the lock screen
 - Display user's Gnome wallpaper on the lock screen
 - Keybinding to gracefully reboot the computer (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Del</kbd>)

@@ -2,7 +2,7 @@ export class Idler {
 	private _idle: boolean = false;
 	private _lastActivity: number = Date.now();
 	private _idleAfter: number = 300000; // 5 minutes
-	private _takeActionAfter: number = 2520000; // 42 minutes
+	private _takeActionAfter: number = 5400000; // 90 minutes
 	private _isLockScreen: boolean;
 
 	public constructor(isLockScreen: boolean = false) {

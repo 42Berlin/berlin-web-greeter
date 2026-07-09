@@ -127,18 +127,6 @@ export default (app: Express) => {
 		}
 		cache.set(`${login}`, imageUrl, cacheTTL); // Cache the image URL
 		return res.redirect(imageUrl);
-		// if (cache.has(`user-image-${login}`)) {
-		// 	const imageUrl = cache.get<string>(`user-image-${login}`);
-		// 	if (imageUrl) {
-		// 		return res.redirect(imageUrl);
-		// 	}
-		// }
-		// const imageUrl = await fetchUserImage(api, login);
-		// if (!imageUrl) {
-		// 	return res.status(404).send({ error: 'User not found or no image set' });
-		// }
-		// cache.set(`user-image-${login}`, imageUrl, cacheTTL); // Cache the image URL
-		// return res.redirect(imageUrl);
 	});
 };
 

@@ -46,14 +46,17 @@ export class InfoBarsUI {
 		this._updateClock();
 		setInterval(() => this._updateClock(), 1000);
 
-		// Populate network icon
-		this._infoElements.network.innerHTML = (navigator.onLine ? '<span>&#128423; ONLINE</span>' : '<span style="color: red;">&#128423; OFFLINE</span>');
-		window.addEventListener('online', () => {
-			this._infoElements.network.innerHTML = '<span>&#128423; ONLINE</span>';
-		});
-		window.addEventListener('offline', () => {
-			this._infoElements.network.innerHTML = '<span style="color: red;">&#128423; OFFLINE</span>';
-		});
+		// Network status dot (green online / red offline)
+		this._setNetworkStatus(navigator.onLine);
+		window.addEventListener('online', () => this._setNetworkStatus(true));
+		window.addEventListener('offline', () => this._setNetworkStatus(false));
+	}
+
+	private _setNetworkStatus(online: boolean): void {
+		this._infoElements.network.textContent = '';
+		this._infoElements.network.classList.toggle('online', online);
+		this._infoElements.network.classList.toggle('offline', !online);
+		this._infoElements.network.title = online ? 'Online' : 'Offline';
 	}
 
 	private _updateClock(): void {

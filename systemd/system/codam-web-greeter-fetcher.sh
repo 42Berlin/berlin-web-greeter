@@ -41,6 +41,33 @@ if [ -n "$MODE" ]; then
 	DATA=$(/usr/bin/jq --arg msg "$MODE" '.mode = $msg' <<< "$DATA")
 fi
 
+# Wallpaper image path used only in default mode (other modes have their own wallpaper).
+# When empty/unset, the animated gradient background is shown instead.
+if [ -n "$GREETER_DEFAULT_WALLPAPER" ]; then
+	DATA=$(/usr/bin/jq --arg val "$GREETER_DEFAULT_WALLPAPER" '.default_wallpaper = $val' <<< "$DATA")
+fi
+
+# Maintenance mode: LOGIN=disabled replaces the login form with a maintenance notice
+if [ -n "$LOGIN" ]; then
+	DATA=$(/usr/bin/jq --arg val "$LOGIN" '.login = $val' <<< "$DATA")
+fi
+
+# Machine diagnostics for the IT panel (best-effort; empty fields are fine)
+IP_ADDR=$(/usr/bin/hostname -I 2>/dev/null | /usr/bin/awk '{print $1}' || true)
+DEFAULT_IFACE=$(/usr/sbin/ip route show default 2>/dev/null | /usr/bin/awk '/default/ {print $5; exit}' || true)
+MAC_ADDR=$(/usr/bin/cat "/sys/class/net/${DEFAULT_IFACE}/address" 2>/dev/null || true)
+UPTIME=$(/usr/bin/uptime -p 2>/dev/null || true)
+DISK=$(/usr/bin/df -h / 2>/dev/null | /usr/bin/awk 'NR==2 {print $5" ("$3"/"$2")"}' || true)
+
+DATA=$(/usr/bin/jq \
+	--arg ip "$IP_ADDR" --arg mac "$MAC_ADDR" \
+	--arg uptime "$UPTIME" --arg disk "$DISK" --arg version "$VERSION" \
+	'.diagnostics = {ip: $ip, mac: $mac, uptime: $uptime, disk: $disk, config_version: $version}' <<< "$DATA")
+
+# Last real user who logged in on this machine (skip shared/system accounts)
+LAST_USER=$(/usr/bin/last -w 2>/dev/null | /usr/bin/awk '{print $1}' | /usr/bin/grep -vE '^(bocal|exam|checkin|event|root|lightdm|reboot|shutdown|wtmp)$' | /usr/bin/grep -vE '^$' | /usr/bin/head -1 || true)
+DATA=$(/usr/bin/jq --arg val "$LAST_USER" '.last_user = $val' <<< "$DATA")
+
 # Create a file for the data with the correct permissions and store the data in it
 DATA_FILE="/usr/share/web-greeter/themes/codam/data.json"
 /usr/bin/touch "$DATA_FILE"

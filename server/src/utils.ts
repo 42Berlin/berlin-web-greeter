@@ -101,6 +101,16 @@ export const getExamForHostName = async function(exams: Exam42[], hostName: stri
 	return getExamForHost(exams, hostIp);
 };
 
+// Cache messages.json in memory and only re-read it when the file changes on disk (avoids a blocking read per request).
+let _messagesCache: { mtimeMs: number, data: any } | null = null;
+const readMessagesJson = function(): any {
+	const mtimeMs = fs.statSync('messages.json').mtimeMs;
+	if (!_messagesCache || _messagesCache.mtimeMs !== mtimeMs) {
+		_messagesCache = { mtimeMs, data: JSON.parse(fs.readFileSync('messages.json', 'utf8')) };
+	}
+	return _messagesCache.data;
+};
+
 export const getMessageForHostName = async function(hostName: string): Promise<string> {
 	if (hostName === 'unknown') {
 		console.warn('Hostname is unknown, unable to find messages for host');
@@ -113,9 +123,7 @@ export const getMessageForHostName = async function(hostName: string): Promise<s
 	}
 
 	try {
-		// Read messages.json
-		// TODO: implement caching for messages
-		const messagesJson = JSON.parse(fs.readFileSync('messages.json', 'utf8'));
+		const messagesJson = readMessagesJson();
 		if (!messagesJson) {
 			console.warn('Could not parse messages.json, unable to find messages for host');
 			return "";

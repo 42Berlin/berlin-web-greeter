@@ -12,68 +12,33 @@ const EVENT_KINDS_FILTER = [
 ];
 
 const fetchAll42 = async function(api: Fast42, path: string, params: { [key: string]: string } = {}): Promise<any[]> {
-	return new Promise(async (resolve, reject) => {
-		try {
-			const pages = await api.getAllPages(path, params);
-			console.log(`Retrieving API items: ${pages.length} pages for path ${path}`);
+	const pages = await api.getAllPages(path, params);
+	console.log(`Retrieving API items: ${pages.length} pages for path ${path}`);
 
-			// Fetch all pages
-			let i = 0;
-			const pageItems = await Promise.all(pages.map(async (page) => {
-				console.log(`Fetching page ${++i}/${pages.length}`);
-				const p = await page;
-				if (p.status == 429) {
-					throw new Error('Intra API rate limit exceeded');
-				}
-				if (p.ok) {
-					const data = await p.json();
-					return data;
-				}
-				else {
-					throw new Error(`Intra API error: ${p.status} ${p.statusText}`);
-				}
-			}));
-			return resolve(pageItems.flat());
+	// Fetch all pages
+	let i = 0;
+	const pageItems = await Promise.all(pages.map(async (page) => {
+		console.log(`Fetching page ${++i}/${pages.length}`);
+		const p = await page;
+		if (p.status == 429) {
+			throw new Error('Intra API rate limit exceeded');
 		}
-		catch (err) {
-			return reject(err);
+		if (p.ok) {
+			return await p.json();
 		}
-	});
+		else {
+			throw new Error(`Intra API error: ${p.status} ${p.statusText}`);
+		}
+	}));
+	return pageItems.flat();
 };
 
+// Range from now until FETCH_EVENTS_UPCOMING_DAYS into the future, as an ISO "start,end" pair for the Intra API range filter.
 const getEventDateRange = function(): string {
 	const currentDate = new Date();
-	const maxFetchDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * 365); // 1 year into the future
+	const maxFetchDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * FETCH_EVENTS_UPCOMING_DAYS);
 	return `${currentDate.toISOString()},${maxFetchDate.toISOString()}`;
 };
-
-// const filterExamOrEventOnDate = function(items: Exam42[] | Event42[]) {
-// 	// Delete events that are over the limit specified in the global variable
-// 	const currentDate = new Date();
-// 	const maxFetchDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * FETCH_EVENTS_UPCOMING_DAYS);
-// 	// @ts-ignore (This expression is not callable -> each member of union type has signatures, but none of those signatures are compatible with each other)
-// 	const filteredItems = items.filter((item: Exam42 | Event42) => {
-// 		const eventDate = new Date(item.begin_at);
-// 		return eventDate.getTime() <= maxFetchDate.getTime();
-// 	});
-// 	return filteredItems;
-// };
-// const filterExamOrEventOnDate = function(items: Exam42[] | Event42[]) {
-// 	// Set current date to midnight to ensure all events from today are included
-// 	const currentDate = new Date();
-// 	currentDate.setHours(0, 0, 0, 0); // Reset to 00:00:00
-
-// 	const maxFetchDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24 * FETCH_EVENTS_UPCOMING_DAYS);
-
-// 	const filteredItems = items.filter((item: Exam42 | Event42) => {
-// 		const eventDate = new Date(item.begin_at);
-// 		return eventDate.getTime() >= currentDate.getTime() && eventDate.getTime() <= maxFetchDate.getTime();
-// 	});
-
-// 	return filteredItems;
-// };
-
-// Assuming Exam42 and Event42 have different structures and Event42 has a `begin_at` property.
 
 function hasBeginAt(item: Exam42 | Event42): item is Event42 {
 	return (item as Event42).begin_at !== undefined;
@@ -102,7 +67,7 @@ function hasBeginAt(item: Exam42 | Event42): item is Event42 {
 export const fetchEvents = async function(api: Fast42): Promise<Event42[]> {
 	try {
 		const range = getEventDateRange();
-		const intraEvents = await fetchAll42(api, `/campus/${CAMPUS_ID}/events`, { 'range[end_at]': range, 'filter[kind]': EVENT_KINDS_FILTER.join(',') });
+		const intraEvents = await fetchAll42(api, `/campus/${CAMPUS_ID}/events`, { 'range[begin_at]': range, 'filter[future]': 'true', 'filter[kind]': EVENT_KINDS_FILTER.join(',') });
 
 		// Convert to Event42 objects
 		const events42: Event42[] = intraEvents.map((item) => {

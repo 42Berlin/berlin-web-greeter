@@ -22,15 +22,14 @@ TMP_AVATAR_PATH="/tmp/codam-web-greeter-user-avatar"
 # The screensaver is always the same and points to the current wallpaper.
 WALLPAPER=$(/usr/bin/gsettings get org.gnome.desktop.screensaver picture-uri | /usr/bin/sed "s/^['\"]\(.*\)['\"]$/\1/")
 
+# Copy the Gnome screensaver wallpaper to /tmp if available.
+# This must never abort the script: gsettings/dconf is sometimes not ready this early in the
+# session and returns empty, and the avatar copy below is more important than the wallpaper.
+# A hard exit here would skip the avatar copy and make the lock screen show the default picture.
 if [ -z "$WALLPAPER" ]; then
-  /usr/bin/echo "No Gnome screensaver wallpaper found"
-  exit 1
-fi
-
-/usr/bin/echo "Found Gnome screensaver wallpaper $WALLPAPER"
-
-# Check if the wallpaper starts with file://
-if [[ "$WALLPAPER" == file://* ]]; then
+  /usr/bin/echo "No Gnome screensaver wallpaper found, skipping wallpaper copy"
+elif [[ "$WALLPAPER" == file://* ]]; then
+  /usr/bin/echo "Found Gnome screensaver wallpaper $WALLPAPER"
   # Get the path to the wallpaper
   WALLPAPER_PATH=$(/usr/bin/sed 's/^file:\/\///' <<<"$WALLPAPER")
 
@@ -38,7 +37,7 @@ if [[ "$WALLPAPER" == file://* ]]; then
   if [ -f "$WALLPAPER_PATH" ]; then
     # Copy the wallpaper to /tmp (without extension)
     /usr/bin/cp "$WALLPAPER_PATH" "$TMP_WALLPAPER_PATH"
-    /usr/bin/chmod 666 "$TMP_WALLPAPER_PATH" # Allow all users to delete the file
+    /usr/bin/chmod 644 "$TMP_WALLPAPER_PATH" # World-readable (for the greeter), owner-writable only
     /usr/bin/echo "Copied wallpaper $WALLPAPER_PATH to $TMP_WALLPAPER_PATH"
   else
     /usr/bin/echo "Wallpaper $WALLPAPER_PATH does not exist"
@@ -68,7 +67,7 @@ fi
 # Copy user's .face file to /tmp
 if [ -f "$FACE_PATH" ]; then
   /usr/bin/cp "$FACE_PATH" "$TMP_AVATAR_PATH"
-  /usr/bin/chmod 666 "$TMP_AVATAR_PATH" # Allow all users to delete the file
+  /usr/bin/chmod 644 "$TMP_AVATAR_PATH" # World-readable (for the greeter), owner-writable only
   /usr/bin/echo "Copied user image $FACE_PATH to $TMP_AVATAR_PATH"
 else
   /usr/bin/echo "No user image found at $FACE_PATH, not copying"

@@ -44,6 +44,8 @@ endif
 	mkdir -p "$(ROOT_DIR)/dist"
 	cp README.md LICENSE package.json "$(ROOT_DIR)/dist"
 	cp -r "$(ROOT_DIR)/static/"* "$(ROOT_DIR)/dist"
+	# Never ship the debug fallback UI to production (it exposes debug controls to students)
+	rm -f "$(ROOT_DIR)/dist/debug.js"
 
 install: build
 	install -dm755 $(THEME_DIR)/$(THEME_NAME)
@@ -66,7 +68,8 @@ clean:
 
 # CLIENT THEMING
 static/greeter.css:
-	echo "@import 'css/styles.css';" > "$(ROOT_DIR)/static/greeter.css"
+	echo "@import 'css/fonts.css';" > "$(ROOT_DIR)/static/greeter.css"
+	echo "@import 'css/styles.css';" >> "$(ROOT_DIR)/static/greeter.css"
 	echo "@import 'css/dark.css';" >> "$(ROOT_DIR)/static/greeter.css"
 
 use-light-theme:

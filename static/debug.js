@@ -5,14 +5,27 @@ document.getElementById('info-debug').innerText = 'Running in debug mode';
 const logo = document.getElementById('logo');
 logo.src = 'assets/42berlin.png';
 
-const bubbleBkgImg = document.getElementById('bubble-bg-placeholder');
-bubbleBkgImg.style.backgroundImage = 'url(assets/bubble-bg.png)';
-
 const bubbleImg = document.getElementById('bubble-image-placeholder');
 bubbleImg.style.backgroundImage = 'url(assets/bubble-img.png)';
 
 const message = document.getElementById('message');
 message.innerText = 'This is a test message that could have been set up in /usr/share/42/berlin.conf';
+
+// Network status dot starts online
+document.getElementById('info-network').classList.add('online');
+
+// Show the brightness control (no real lightdm in debug)
+const brightnessControl = document.getElementById('brightness-control');
+if (brightnessControl) {
+	brightnessControl.style.display = 'inline-flex';
+	document.getElementById('brightness-button').addEventListener('click', (e) => {
+		e.stopPropagation();
+		brightnessControl.classList.toggle('open');
+	});
+	document.addEventListener('click', (e) => {
+		if (!brightnessControl.contains(e.target)) brightnessControl.classList.remove('open');
+	});
+}
 
 const examModeProjects = document.getElementById('exam-mode-projects');
 examModeProjects.innerText = 'Exam Rank 00, Exam Rank 01, Exam Rank 02, non-existing debug exams';
@@ -20,8 +33,11 @@ examModeProjects.innerText = 'Exam Rank 00, Exam Rank 01, Exam Rank 02, non-exis
 const lockedAgo = document.getElementById('active-user-session-locked-ago');
 lockedAgo.innerText = 'Automated logout in 42 minutes';
 
-// Load the default wallpaper
-document.body.style.backgroundImage = "url(assets/default-wallpaper.png)";
+// Show the default user avatar on the lock screen (the real UI sets this from the user's .face)
+document.getElementById('active-user-session-avatar').src = 'assets/default-user.png';
+
+// Show the animated gradient background (the default when no wallpaper image is set)
+document.getElementById('gradient-bg').style.display = 'block';
 
 // Add options container
 const optionsContainer = document.createElement('div');
@@ -48,6 +64,7 @@ function switchScreen(screenId) {
 		selectedScreen.style.display = 'block';
 
 		logo.style.display = (screenId === 'lock-form') ? 'none' : 'block';
+		document.body.classList.toggle('lock-screen', screenId === 'lock-form');
 
 		// Show/hide header buttons based on screen
 		updateHeaderButtonsForScreen(screenId);
@@ -93,14 +110,40 @@ offlineLabel.style.marginRight = '24px';
 optionsContainer.appendChild(offlineLabel);
 
 toggleOfflineMode = () => {
-	if (offlineToggle.checked) {
-		document.getElementById('offline-img-placeholder').style.backgroundImage = 'url(assets/offline.gif)';
-		document.getElementById('offline-message').style.display = 'block';
+	const offline = offlineToggle.checked;
+	document.getElementById('offline-message').style.display = offline ? 'flex' : 'none';
+
+	const net = document.getElementById('info-network');
+	net.classList.toggle('online', !offline);
+	net.classList.toggle('offline', offline);
+
+	// Mirror production: block the login form while offline
+	['login', 'password', 'login-button'].forEach((id) => {
+		const el = document.getElementById(id);
+		if (el) el.disabled = offline;
+	});
+
+	if (offline) {
+		// Unfocus so the spacebar goes to the game and not, e.g., the offline checkbox
+		if (document.activeElement) document.activeElement.blur();
 	} else {
-		document.getElementById('offline-message').style.display = 'none';
+		document.getElementById('game-frame').style.display = 'none'; // hide the game when back online
 	}
 };
 offlineToggle.addEventListener('change', toggleOfflineMode);
+
+// Spacebar shows the dino game as a window below the offline text (mirrors production)
+document.addEventListener('keydown', (e) => {
+	if (e.key === ' ' && offlineToggle.checked) {
+		const gameFrame = document.getElementById('game-frame');
+		if (gameFrame.style.display === 'none' || gameFrame.style.display === '') {
+			gameFrame.style.display = 'block';
+			// Load the game fresh while visible so it initializes at the correct resolution
+			gameFrame.addEventListener('load', () => gameFrame.focus(), { once: true });
+			gameFrame.src = 'game/index.html?t=' + Date.now();
+		}
+	}
+});
 
 // Add toggle to enable video
 const videoToggle = document.createElement('input');
@@ -131,6 +174,128 @@ for (let i = 0; i < 5; i++) {
 	document.getElementById('intra-calendar').appendChild(calendarEvent);
 }
 
+// Open the detail dialog for a calendar-event element (mirrors CalendarUI)
+function openDebugEventDialog(eventElement) {
+	const dialog = document.createElement('dialog');
+	dialog.classList.add('calendar-event-dialog');
+	dialog.setAttribute('data-event-kind', eventElement.getAttribute('data-event-kind') ?? 'event');
+
+	const closeButton = document.createElement('button');
+	closeButton.classList.add('dialog-close-button');
+	closeButton.innerHTML = '&times;';
+	dialog.appendChild(closeButton);
+
+	const contents = document.createElement('div');
+	contents.classList.add('event-dialog-contents');
+	dialog.appendChild(contents);
+	for (const child of eventElement.children) {
+		contents.appendChild(child.cloneNode(true));
+	}
+
+	contents.addEventListener('click', (ev) => ev.stopPropagation());
+	dialog.addEventListener('click', () => { dialog.close(); dialog.remove(); });
+
+	document.body.appendChild(dialog);
+	dialog.showModal();
+}
+function addDebugEventDialog(eventElement) {
+	eventElement.style.cursor = 'pointer';
+	eventElement.addEventListener('click', () => openDebugEventDialog(eventElement));
+}
+document.querySelectorAll('#intra-calendar .calendar-event').forEach(addDebugEventDialog);
+
+// Mock next-event countdown banner (clickable, opens the detail view)
+const nextEvent = document.getElementById('next-event');
+if (nextEvent) {
+	nextEvent.style.display = 'flex';
+	nextEvent.innerHTML =
+		'<span class="next-event-label">Next up</span>' +
+		'<span class="next-event-name">Community Meeting</span>' +
+		'<span class="next-event-time">in 42 min</span>' +
+		'<span class="next-event-location">📍 Cafe</span>';
+	const mockEvent = calendarEventTemplate.content.firstElementChild.cloneNode(true);
+	nextEvent.addEventListener('click', () => openDebugEventDialog(mockEvent));
+}
+
+// Enable the sign_in / unlock buttons as their fields are filled (mirrors production)
+function wireSubmitButton(inputIds, buttonId) {
+	const inputs = inputIds.map((id) => document.getElementById(id));
+	const button = document.getElementById(buttonId);
+	if (!button || inputs.some((i) => !i)) return;
+	const update = () => { button.disabled = inputs.some((i) => i.value.trim() === ''); };
+	inputs.forEach((i) => i.addEventListener('input', update));
+	update();
+}
+wireSubmitButton(['login', 'password'], 'login-button');
+wireSubmitButton(['active-user-session-password'], 'unlock-button');
+
+// Maintenance-mode toggle (mirrors LOGIN=disabled)
+const maintToggle = document.createElement('input');
+const maintLabel = document.createElement('label');
+maintToggle.type = 'checkbox';
+maintToggle.id = 'maintenance-toggle';
+optionsContainer.appendChild(maintToggle);
+maintLabel.textContent = 'Maintenance';
+maintLabel.htmlFor = 'maintenance-toggle';
+maintLabel.style.marginRight = '24px';
+optionsContainer.appendChild(maintLabel);
+maintToggle.addEventListener('change', () => {
+	const maint = document.getElementById('maintenance');
+	if (maintToggle.checked) {
+		document.querySelectorAll('main > form').forEach((f) => f.style.display = 'none');
+		maint.style.display = 'flex';
+	} else {
+		maint.style.display = 'none';
+		switchScreen('login-form');
+	}
+});
+
+// Diagnostics panel preview (mock data), toggled by Ctrl+Alt+I or the button below
+function toggleDebugDiagnostics() {
+		const existing = document.getElementById('diagnostics-overlay');
+		if (existing) { existing.remove(); return; }
+		const rows = [
+			['Hostname', 'c1r2s3'], ['Last user', 'jdoe'], ['IP', '10.15.100.42'], ['MAC', 'a4:83:e7:12:34:56'],
+			['Uptime', 'up 3 hours, 12 minutes'],
+			['Disk /', '61% (120G/200G)'], ['Greeter', 'codam-web-greeter v1.3.3'],
+			['Config version', 'v0.1b'], ['Last data fetch', new Date().toLocaleString()],
+			['Network', navigator.onLine ? 'online' : 'offline'],
+		];
+		const overlay = document.createElement('div');
+		overlay.id = 'diagnostics-overlay';
+		overlay.addEventListener('click', (ev) => { if (ev.target === overlay) overlay.remove(); });
+		const panel = document.createElement('div');
+		panel.className = 'diagnostics-panel';
+		const title = document.createElement('h2');
+		title.textContent = '// diagnostics';
+		panel.appendChild(title);
+		const table = document.createElement('div');
+		table.className = 'diagnostics-table';
+		rows.forEach(([k, v]) => {
+			const kEl = document.createElement('span'); kEl.className = 'diag-key'; kEl.textContent = k;
+			const vEl = document.createElement('span'); vEl.className = 'diag-val'; vEl.textContent = v;
+			table.append(kEl, vEl);
+		});
+		panel.appendChild(table);
+		const hint = document.createElement('p');
+		hint.className = 'diagnostics-hint';
+		hint.textContent = 'Ctrl+Alt+I or click outside to close';
+		panel.appendChild(hint);
+		overlay.appendChild(panel);
+		document.body.appendChild(overlay);
+}
+
+document.addEventListener('keydown', (e) => {
+	if (e.ctrlKey && e.altKey && (e.key === 'i' || e.key === 'I')) toggleDebugDiagnostics();
+});
+
+// Diagnostics toggle button (same as the Ctrl+Alt+I IT hotkey)
+const diagButton = document.createElement('button');
+diagButton.textContent = 'Diagnostics';
+diagButton.style.marginLeft = '8px';
+diagButton.addEventListener('click', toggleDebugDiagnostics);
+optionsContainer.appendChild(diagButton);
+
 
 // Add file picker for wallpaper
 const wallpaperPicker = document.createElement('input');
@@ -141,6 +306,8 @@ wallpaperPicker.addEventListener('change', () => {
 	const file = wallpaperPicker.files[0];
 	const reader = new FileReader();
 	reader.onload = () => {
+		// Picking a wallpaper switches from the gradient to the image, like the real WallpaperUI
+		document.getElementById('gradient-bg').style.display = 'none';
 		document.body.style.backgroundImage = `url(${reader.result})`;
 	};
 	reader.readAsDataURL(file);
@@ -295,7 +462,7 @@ function createCapsLockIndicator(passwordInput) {
 	// Create indicator
 	const indicator = document.createElement('div');
 	indicator.className = 'caps-lock-indicator';
-	indicator.textContent = '⇧';
+	indicator.textContent = '⇪';
 	indicator.style.display = 'none';
 	
 	// Add indicator to wrapper
@@ -396,66 +563,51 @@ function updateHeaderButtonsForScreen(screenId) {
 // Custom confirmation dialog function
 function showConfirmDialog(message, onConfirm, onCancel) {
 	return new Promise((resolve) => {
-		// Create dialog container
-		const dialog = document.createElement('div');
+		// Native <dialog> + showModal(): traps focus and inerts the background
+		const dialog = document.createElement('dialog');
 		dialog.className = 'confirm-dialog';
-		
-		// Create dialog content
+
 		const content = document.createElement('div');
 		content.className = 'confirm-dialog-content';
-		
-		// Create message
+
 		const messageEl = document.createElement('div');
 		messageEl.className = 'confirm-dialog-message';
 		messageEl.textContent = message;
-		
-		// Create buttons container
+
 		const buttonsEl = document.createElement('div');
 		buttonsEl.className = 'confirm-dialog-buttons';
-		
-		// Create Cancel button
+
+		let result = false;
+		const close = () => {
+			dialog.close();
+			dialog.remove();
+			(result ? onConfirm : onCancel)?.();
+			resolve(result);
+		};
+
 		const cancelBtn = document.createElement('button');
 		cancelBtn.className = 'confirm-dialog-button';
+		cancelBtn.type = 'button';
 		cancelBtn.textContent = 'Cancel';
-		cancelBtn.addEventListener('click', () => {
-			document.body.removeChild(dialog);
-			if (onCancel) onCancel();
-			resolve(false);
-		});
-		
-		// Create Confirm button
+		cancelBtn.addEventListener('click', () => { result = false; close(); });
+
 		const confirmBtn = document.createElement('button');
 		confirmBtn.className = 'confirm-dialog-button primary';
+		confirmBtn.type = 'button';
 		confirmBtn.textContent = 'Confirm';
-		confirmBtn.addEventListener('click', () => {
-			document.body.removeChild(dialog);
-			if (onConfirm) onConfirm();
-			resolve(true);
-		});
-		
-		// Assemble dialog
+		confirmBtn.addEventListener('click', () => { result = true; close(); });
+
+		dialog.addEventListener('cancel', (e) => { e.preventDefault(); result = false; close(); });
+
 		buttonsEl.appendChild(cancelBtn);
 		buttonsEl.appendChild(confirmBtn);
 		content.appendChild(messageEl);
 		content.appendChild(buttonsEl);
 		dialog.appendChild(content);
-		
-		// Add to DOM
+
 		document.body.appendChild(dialog);
-		
-		// Focus confirm button
+		dialog.showModal();
 		confirmBtn.focus();
-		
-		// Handle ESC key
-		const handleEsc = (e) => {
-			if (e.key === 'Escape') {
-				document.body.removeChild(dialog);
-				document.removeEventListener('keydown', handleEsc);
-				if (onCancel) onCancel();
-				resolve(false);
-			}
-		};
-		document.addEventListener('keydown', handleEsc);
 	});
 }
 

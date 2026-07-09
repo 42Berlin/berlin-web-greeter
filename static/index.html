@@ -3,18 +3,20 @@
 	<head>
 		<meta charset="UTF-8" />
 		<!-- optional: you can use the following setup to load required css without building greeter.css -->
+		<link rel="stylesheet" href="css/fonts.css" />
 		<link rel="stylesheet" href="css/dark.css" />
 		<link rel="stylesheet" href="css/styles.css" />
 		<!-- <link rel="stylesheet" href="css/boxed.css" /> -->
 		<!-- <link rel="stylesheet" href="greeter.css" onerror="console.error('Styles are missing: did you use the Makefile to build static/greeter.css?');" /> -->
-		<title>Codam Theme for nody-greeter</title>
+		<title>42 Berlin Theme for nody-greeter</title>
 	</head>
 	<body>
+		<!-- Animated "moving color" background, shown by WallpaperUI when no wallpaper image is set -->
+		<div id="gradient-bg"></div>
+
 		<video autoplay loop muted playsinline id="background-video">
 			<source src="assets/video.mp4" type="video/mp4">
 		</video>
-
-		<iframe id="game-frame" src="game/index.html" tabindex="0"></iframe>
 
 		<div id="blur-filter" style="display: none;"></div>
 
@@ -26,18 +28,22 @@
 				<span id="info-hostname">hostname</span>
 			</div>
 			<div class="horibar-right">
-				<button type="button" id="reboot-button" class="header-button" title="Reboot system" style="display: none;">REBOOT</button>
-				<button type="button" id="logout-button" class="header-button" title="Log out" style="display: none;">LOGOUT</button>
-				<span id="info-network">&#128423; ONLINE</span>
+				<div id="brightness-control" style="display: none;">
+					<button type="button" id="brightness-button" class="header-button" title="Brightness">&#9788;</button>
+					<input type="range" id="brightness-slider" min="10" max="100" step="5" title="Screen brightness" />
+				</div>
+				<button type="button" id="reboot-button" class="header-button" title="Reboot system" style="display: none;">reboot</button>
+				<button type="button" id="logout-button" class="header-button" title="Log out" style="display: none;">logout</button>
+				<span id="info-network" title="Online"></span>
 				<span id="info-date">30 Jan 2025</span>
 				<span id="info-clock">00:00</span>
 			</div>
 		</header>
 
-		<!-- Offline message -->
+		<!-- Offline message + hidden dino game (shown below the text on spacebar) -->
 		<div id="offline-message">
-			<div id="offline-img-placeholder"></div>
-			<p id="offline-text">This PC is offline. Please check the ethernet cable on both ends.</p>
+			<p id="offline-text">This PC is offline.<br>Please check the ethernet cable on both ends.</p>
+			<iframe id="game-frame" tabindex="0"></iframe>
 		</div>
 
 
@@ -50,9 +56,9 @@
 		<main>
 			<!-- Login form -->
 			<form action="POST" id="login-form" spellcheck="false" autocomplete="off" autocapitalize="off" style="display: none;">
-				<input type="text" name="login" id="login" placeholder="Enter your login" maxlength="32" />
-				<input type="password" name="password" id="password" placeholder="Enter your password" maxlength="128" />
-				<button type="submit" id="login-button" disabled title="Log in">&#10149;</button>
+				<input type="text" name="login" id="login" placeholder="enter_login" maxlength="32" />
+				<input type="password" name="password" id="password" placeholder="enter_password" maxlength="128" />
+				<button type="submit" id="login-button" disabled title="Log in">sign_in<span class="term-arrow">&rarr;</span></button>
 			</form>
 
 			<!-- Lock screen form (used when one or more sessions are active) -->
@@ -60,8 +66,8 @@
 				<img id="active-user-session-avatar" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
 				<h3 id="active-user-session-display-name">Display Name</h3>
 				<h4 id="active-user-session-login-name">username</h4>
-				<input type="password" name="active-user-session-password" id="active-user-session-password" placeholder="Enter your password" maxlength="128" />
-				<button type="submit" id="unlock-button" disabled title="Unlock">&#10149;</button>
+				<input type="password" name="active-user-session-password" id="active-user-session-password" placeholder="enter_password" maxlength="128" />
+				<button type="submit" id="unlock-button" disabled title="Unlock">unlock<span class="term-arrow">&rarr;</span></button>
 				<p class="extra-text"><span id="active-user-session-locked-ago"></span></p>
 			</form>
 
@@ -71,9 +77,15 @@
 				<p><span id="exam-mode-projects"></span></p>
 				<br>
 				<p>Click the arrow below to start your exam.</p>
-				<button type="submit" id="exam-mode-start-button" title="Start your exam">&#10149;</button>
+				<button type="submit" id="exam-mode-start-button" title="Start your exam">start_exam<span class="term-arrow">&rarr;</span></button>
 			</form>
 
+
+			<!-- Maintenance notice (shown when LOGIN=disabled in berlin.conf) -->
+			<div id="maintenance">
+				<h2>// under_maintenance</h2>
+				<p>This computer is temporarily unavailable.<br>Please use another machine or contact the IT team.</p>
+			</div>
 
 			<!-- Message -->
 			<div id="message-wrapper">
@@ -85,13 +97,13 @@
 				<div id="bubble-message-content">
 					<div id="bubble-image-placeholder"></div>
 					<div id="bubble-message">This is a message that will be displayed on the login screen!</div>
-					<div id="bubble-bg-placeholder"></div>
 				</div>
 			</div>
 		</main>
 
 		<!-- Intra events calendar -->
 		<aside>
+			<div id="next-event" style="display: none;"></div>
 			<div id="intra-calendar">
 				<template id="intra-calendar-event-template">
 					<div class="calendar-event" data-event-kind="event" data-event-id="1424">

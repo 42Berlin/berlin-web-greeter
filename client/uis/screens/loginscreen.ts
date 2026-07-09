@@ -42,14 +42,22 @@ export class LoginScreenUI extends UIScreen {
 		const offlineMessage = document.getElementById('offline-message');
 
 		if (offlineMessage) {
-			offlineMessage.style.display = isOnline ? "none" : "block";
+			offlineMessage.style.display = isOnline ? "none" : "flex";
+		}
+
+		// Block interaction with the login form while offline (the overlay covers it anyway).
+		if (isOnline) {
+			this._enableForm();
+			this._enableOrDisableSubmitButton(); // keep the submit button disabled until fields are filled
+		} else {
+			this._disableForm();
 		}
 	}
 
 	protected _showOfflineMessage(show: boolean): void {
 		const offlineMessage = document.getElementById('offline-message');
 		if (offlineMessage) {
-			offlineMessage.style.display = show ? "block" : "none";
+			offlineMessage.style.display = show ? "flex" : "none";
 		}
 	}
 
@@ -62,15 +70,19 @@ export class LoginScreenUI extends UIScreen {
 
 	protected _startGame(): void {
 		const gameFrame = document.getElementById('game-frame') as HTMLIFrameElement;
-		gameFrame.style.visibility = 'visible';  // Show the iframe to start the game
-		gameFrame.focus();
-		console.log("Game frame focused:", document.activeElement === gameFrame);
-		gameFrame.contentWindow?.addEventListener('keydown', this._handleKeydown_esc);
+		gameFrame.style.display = 'block';  // Show the game window (below the offline text)
+		// (Re)load the game now that the frame is visible so it initializes at the correct
+		// resolution. Loading it while hidden gives it width 0 and breaks/slows the first run.
+		gameFrame.addEventListener('load', () => {
+			gameFrame.focus();
+			gameFrame.contentWindow?.addEventListener('keydown', this._handleKeydown_esc);
+		}, { once: true });
+		gameFrame.src = 'game/index.html?t=' + Date.now();
 	}
 
 	protected _stopGame(): void {
 		const gameFrame = document.getElementById('game-frame') as HTMLIFrameElement;
-		gameFrame.style.visibility = 'hidden';   // Hide the iframe to stop the game
+		gameFrame.style.display = 'none';   // Hide the game window
 		gameFrame.blur();
 		gameFrame.contentWindow?.removeEventListener('keydown', this._handleKeydown_esc);
 	}
@@ -82,7 +94,7 @@ export class LoginScreenUI extends UIScreen {
 		const gameFrame = document.getElementById('game-frame') as HTMLIFrameElement;
 		console.log("Key pressed: ", event.key);
 		// Handle key events inside the game iframe when it is focused
-		if (gameFrame.style.visibility === 'visible' && gameFrame === document.activeElement) {
+		if (gameFrame.style.display !== 'none' && gameFrame === document.activeElement) {
 			if (event.key === 'Escape') {
 				// Handle ESC key to stop the game when the iframe is focused
 				console.log("Escape pressed inside game frame");
@@ -101,9 +113,8 @@ export class LoginScreenUI extends UIScreen {
 		console.log("Key pressed: ", event.key);
 
 		if (event.key === ' ' && !navigator.onLine) {
-			this._toggleDarkFilter(true);
-			this._showOfflineMessage(false);
-			this._startGame();  // Start the game when offline
+			// Keep the offline overlay up and show the game as a window below the text
+			this._startGame();
 		}
 	};
 
@@ -266,7 +277,7 @@ export class LoginScreenUI extends UIScreen {
 		// Create indicator
 		const indicator = document.createElement('div');
 		indicator.className = 'caps-lock-indicator';
-		indicator.textContent = '⇧';
+		indicator.textContent = '⇪';
 		indicator.style.display = 'none';
 		
 		// Add indicator to wrapper
@@ -317,63 +328,52 @@ export class LoginScreenUI extends UIScreen {
 
 	private _showConfirmDialog(message: string): Promise<boolean> {
 		return new Promise((resolve) => {
-			// Create dialog container
-			const dialog = document.createElement('div');
+			// Native <dialog> opened with showModal(): the browser traps focus inside it and
+			// makes everything behind it inert, so the page underneath cannot be reached (Tab/click).
+			const dialog = document.createElement('dialog');
 			dialog.className = 'confirm-dialog';
-			
-			// Create dialog content
+
 			const content = document.createElement('div');
 			content.className = 'confirm-dialog-content';
-			
-			// Create message
+
 			const messageEl = document.createElement('div');
 			messageEl.className = 'confirm-dialog-message';
 			messageEl.textContent = message;
-			
-			// Create buttons container
+
 			const buttonsEl = document.createElement('div');
 			buttonsEl.className = 'confirm-dialog-buttons';
-			
-			// Create Cancel button
+
+			let result = false;
+			const close = () => {
+				dialog.close();
+				dialog.remove();
+				resolve(result);
+			};
+
 			const cancelBtn = document.createElement('button');
 			cancelBtn.className = 'confirm-dialog-button';
+			cancelBtn.type = 'button';
 			cancelBtn.textContent = 'Cancel';
-			cancelBtn.addEventListener('click', () => {
-				document.body.removeChild(dialog);
-				resolve(false);
-			});
-			
-			// Create Confirm button
+			cancelBtn.addEventListener('click', () => { result = false; close(); });
+
 			const confirmBtn = document.createElement('button');
 			confirmBtn.className = 'confirm-dialog-button primary';
+			confirmBtn.type = 'button';
 			confirmBtn.textContent = 'Confirm';
-			confirmBtn.addEventListener('click', () => {
-				document.body.removeChild(dialog);
-				resolve(true);
-			});
-			
-			// Assemble dialog
+			confirmBtn.addEventListener('click', () => { result = true; close(); });
+
+			// Esc triggers the dialog's 'cancel' event; treat it as Cancel
+			dialog.addEventListener('cancel', (e) => { e.preventDefault(); result = false; close(); });
+
 			buttonsEl.appendChild(cancelBtn);
 			buttonsEl.appendChild(confirmBtn);
 			content.appendChild(messageEl);
 			content.appendChild(buttonsEl);
 			dialog.appendChild(content);
-			
-			// Add to DOM
+
 			document.body.appendChild(dialog);
-			
-			// Focus confirm button
+			dialog.showModal();
 			confirmBtn.focus();
-			
-			// Handle ESC key
-			const handleEsc = (e: KeyboardEvent) => {
-				if (e.key === 'Escape') {
-					document.body.removeChild(dialog);
-					document.removeEventListener('keydown', handleEsc);
-					resolve(false);
-				}
-			};
-			document.addEventListener('keydown', handleEsc);
 		});
 	}
 

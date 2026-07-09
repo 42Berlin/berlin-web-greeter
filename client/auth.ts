@@ -114,6 +114,7 @@ export class Authenticator {
 						this._authEvents.authenticationComplete();
 					}
 					lightdm.start_session(this._session ?? null);
+					this._clearAuth(); // don't keep credentials in memory after handing off to the session
 				}
 				else {
 					console.log("LightDM authentication failed. User not found or password incorrect.");

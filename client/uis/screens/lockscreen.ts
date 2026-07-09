@@ -251,7 +251,7 @@ export class LockScreenUI extends UIScreen {
 		// Create indicator
 		const indicator = document.createElement('div');
 		indicator.className = 'caps-lock-indicator';
-		indicator.textContent = '⇧';
+		indicator.textContent = '⇪';
 		indicator.style.display = 'none';
 
 		// Add indicator to wrapper
@@ -303,63 +303,52 @@ export class LockScreenUI extends UIScreen {
 
 	private _showConfirmDialog(message: string): Promise<boolean> {
 		return new Promise((resolve) => {
-			// Create dialog container
-			const dialog = document.createElement('div');
+			// Native <dialog> opened with showModal(): the browser traps focus inside it and
+			// makes everything behind it inert, so the page underneath cannot be reached (Tab/click).
+			const dialog = document.createElement('dialog');
 			dialog.className = 'confirm-dialog';
 
-			// Create dialog content
 			const content = document.createElement('div');
 			content.className = 'confirm-dialog-content';
 
-			// Create message
 			const messageEl = document.createElement('div');
 			messageEl.className = 'confirm-dialog-message';
 			messageEl.textContent = message;
 
-			// Create buttons container
 			const buttonsEl = document.createElement('div');
 			buttonsEl.className = 'confirm-dialog-buttons';
 
-			// Create Cancel button
+			let result = false;
+			const close = () => {
+				dialog.close();
+				dialog.remove();
+				resolve(result);
+			};
+
 			const cancelBtn = document.createElement('button');
 			cancelBtn.className = 'confirm-dialog-button';
+			cancelBtn.type = 'button';
 			cancelBtn.textContent = 'Cancel';
-			cancelBtn.addEventListener('click', () => {
-				document.body.removeChild(dialog);
-				resolve(false);
-			});
+			cancelBtn.addEventListener('click', () => { result = false; close(); });
 
-			// Create Confirm button
 			const confirmBtn = document.createElement('button');
 			confirmBtn.className = 'confirm-dialog-button primary';
+			confirmBtn.type = 'button';
 			confirmBtn.textContent = 'Confirm';
-			confirmBtn.addEventListener('click', () => {
-				document.body.removeChild(dialog);
-				resolve(true);
-			});
+			confirmBtn.addEventListener('click', () => { result = true; close(); });
 
-			// Assemble dialog
+			// Esc triggers the dialog's 'cancel' event; treat it as Cancel
+			dialog.addEventListener('cancel', (e) => { e.preventDefault(); result = false; close(); });
+
 			buttonsEl.appendChild(cancelBtn);
 			buttonsEl.appendChild(confirmBtn);
 			content.appendChild(messageEl);
 			content.appendChild(buttonsEl);
 			dialog.appendChild(content);
 
-			// Add to DOM
 			document.body.appendChild(dialog);
-
-			// Focus confirm button
+			dialog.showModal();
 			confirmBtn.focus();
-
-			// Handle ESC key
-			const handleEsc = (e: KeyboardEvent) => {
-				if (e.key === 'Escape') {
-					document.body.removeChild(dialog);
-					document.removeEventListener('keydown', handleEsc);
-					resolve(false);
-				}
-			};
-			document.addEventListener('keydown', handleEsc);
 		});
 	}
 

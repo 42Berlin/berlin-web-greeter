@@ -3,6 +3,9 @@
 # Exit on error
 set -e
 
+# Load machine config to read REBOOT_AFTER_LOGOUT (reboot to a clean state after an auto-logout)
+source /usr/share/42/berlin.conf 2>/dev/null || true
+
 # Get logged in users
 WHO_OUTPUT=$(/usr/bin/who)
 
@@ -43,8 +46,13 @@ while IFS= read -r line; do
 	MAX_IDLE_TIME_MINUTES=$((90))
 	MAX_IDLE_TIME=$((MAX_IDLE_TIME_MINUTES * 60 * 1000))
 	if [ "$IDLE_TIME" -gt "$MAX_IDLE_TIME" ] || [ "$TIME_SINCE_LOCK" -gt "$MAX_IDLE_TIME" ]; then
-		/usr/bin/echo "Session for user $USERNAME has been idle for over 42 minutes (idletime $IDLE_TIME ms, time_since_lock $TIME_SINCE_LOCK ms), forcing logout now"
-		/usr/bin/loginctl terminate-user "$USERNAME" && /usr/bin/systemctl restart lightdm
+		/usr/bin/echo "Session for user $USERNAME has been idle for over $MAX_IDLE_TIME_MINUTES minutes (idletime $IDLE_TIME ms, time_since_lock $TIME_SINCE_LOCK ms), forcing logout now"
+		if [ "$REBOOT_AFTER_LOGOUT" = "true" ]; then
+			/usr/bin/echo "REBOOT_AFTER_LOGOUT is enabled, rebooting the machine"
+			/usr/bin/loginctl terminate-user "$USERNAME" && /usr/bin/systemctl reboot
+		else
+			/usr/bin/loginctl terminate-user "$USERNAME" && /usr/bin/systemctl restart lightdm
+		fi
 	else
 		/usr/bin/echo "Session for $USERNAME has been idle for $((IDLE_TIME / 1000)) seconds, screen locked for $((TIME_SINCE_LOCK / 1000)) seconds"
 	fi
