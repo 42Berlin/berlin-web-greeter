@@ -212,9 +212,9 @@ async function initGreeter(): Promise<void> {
 	});
 }
 
-window.addEventListener("GreeterReady", () => {
+function playBootAnimation(): void {
+	document.body.classList.remove('boot-active');
 	document.body.classList.add('boot-pending');
-	initGreeter();
 	requestAnimationFrame(() => {
 		document.body.classList.remove('boot-pending');
 		document.body.classList.add('boot-active');
@@ -222,4 +222,39 @@ window.addEventListener("GreeterReady", () => {
 			document.body.classList.remove('boot-active');
 		}, 2000);
 	});
+}
+
+window.addEventListener("GreeterReady", () => {
+	document.body.classList.add('boot-pending');
+	initGreeter();
+	playBootAnimation();
+
+	// Detect screen wake (DPMS): if no input for >5s and then input arrives, replay the boot fade-in.
+	// This catches the common case where the display was asleep and the user just moved the mouse or pressed a key.
+	const WAKE_IDLE_MS = 5000;
+	let lastInputTime = Date.now();
+	let wakeArmed = false;
+
+	const onInput = (): void => {
+		const now = Date.now();
+		if (wakeArmed && now - lastInputTime > WAKE_IDLE_MS) {
+			playBootAnimation();
+		}
+		lastInputTime = now;
+		wakeArmed = false;
+	};
+
+	document.addEventListener('mousemove', onInput, { passive: true });
+	document.addEventListener('keydown', onInput, { passive: true });
+	document.addEventListener('mousedown', onInput, { passive: true });
+
+	// Arm the wake detector after a short delay so the initial boot animation doesn't count as a "wake"
+	setTimeout(() => { wakeArmed = true; }, 3000);
+
+	// Also re-arm after periods of inactivity so the NEXT wake is detected
+	setInterval(() => {
+		if (Date.now() - lastInputTime > WAKE_IDLE_MS) {
+			wakeArmed = true;
+		}
+	}, 1000);
 });

@@ -617,15 +617,48 @@ if (window.devicePixelRatio <= 1 && screen.width < 2560) {
 	document.body.classList.add('low-dpi');
 }
 
-// Boot sequence: trigger the staggered entrance animation
+// Boot sequence: trigger the entrance animation, re-trigger on screen wake
+function playBootAnimation() {
+	document.body.classList.remove('boot-active');
+	document.body.classList.add('boot-pending');
+	requestAnimationFrame(() => {
+		document.body.classList.remove('boot-pending');
+		document.body.classList.add('boot-active');
+		setTimeout(() => {
+			document.body.classList.remove('boot-active');
+		}, 2000);
+	});
+}
+
 document.body.classList.add('boot-pending');
-requestAnimationFrame(() => {
-	document.body.classList.remove('boot-pending');
-	document.body.classList.add('boot-active');
-	setTimeout(() => {
-		document.body.classList.remove('boot-active');
-	}, 2000);
-});
+playBootAnimation();
+
+// Detect screen wake: if no input for >5s then input arrives, replay the boot animation
+(function setupWakeDetection() {
+	const WAKE_IDLE_MS = 5000;
+	let lastInputTime = Date.now();
+	let wakeArmed = false;
+
+	const onInput = () => {
+		const now = Date.now();
+		if (wakeArmed && now - lastInputTime > WAKE_IDLE_MS) {
+			playBootAnimation();
+		}
+		lastInputTime = now;
+		wakeArmed = false;
+	};
+
+	document.addEventListener('mousemove', onInput, { passive: true });
+	document.addEventListener('keydown', onInput, { passive: true });
+	document.addEventListener('mousedown', onInput, { passive: true });
+
+	setTimeout(() => { wakeArmed = true; }, 3000);
+	setInterval(() => {
+		if (Date.now() - lastInputTime > WAKE_IDLE_MS) {
+			wakeArmed = true;
+		}
+	}, 1000);
+})();
 
 // Particle field
 (function initParticles() {

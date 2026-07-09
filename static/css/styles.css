@@ -1270,11 +1270,6 @@ main > #maintenance[style*="flex"] {
   animation: dialogEnter 250ms ease-out;
 }
 
-/* Next-event banner appears with a gentle slide */
-#next-event[style*="flex"] {
-  animation: dialogEnter 250ms ease-out;
-}
-
 /* Bubble message subtle fade-in */
 #bubble-message:not(:empty) {
   animation: bubbleFadeIn 400ms ease-out;
