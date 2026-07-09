@@ -50,6 +50,8 @@ endif
 install: build
 	install -dm755 $(THEME_DIR)/$(THEME_NAME)
 	cp -r "$(ROOT_DIR)/dist"/* "$(THEME_DIR)/$(THEME_NAME)"
+	cp -r "$(ROOT_DIR)/splash" "$(THEME_DIR)/$(THEME_NAME)/splash"
+	chmod +x "$(THEME_DIR)/$(THEME_NAME)/splash/launcher.sh"
 	bash "$(ROOT_DIR)/systemd/install.sh"
 	@echo "Update your /etc/lightdm/web-greeter.yml config file manually to enable the Codam theme"
 
