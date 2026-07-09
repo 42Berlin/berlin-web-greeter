@@ -36,6 +36,10 @@ export class UI {
 		// Set up DPI scaling
 		this.applyHiDpiScaling();
 
+		if (window.devicePixelRatio <= 1 && screen.width < 2560) {
+			document.body.classList.add('low-dpi');
+		}
+
 		// Set up logo
 		if (data.logo.exists) {
 			this._logo.src = data.logo.path;

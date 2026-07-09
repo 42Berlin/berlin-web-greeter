@@ -52,6 +52,8 @@ body {
   color: var(--color-text-primary);
   font-size: 16px;
   font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   height: 100%;
 }
@@ -1182,4 +1184,41 @@ dialog.calendar-event-dialog .dialog-close-button {
 dialog.calendar-event-dialog .dialog-close-button:hover {
   background: var(--c-cyan);
   color: var(--c-void);
+}
+
+/* Low-DPI adjustments for 1080p on large screens (82-92 PPI) */
+body.low-dpi {
+  font-size: 16px;
+}
+
+body.low-dpi .calendar-event-details {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+body.low-dpi .calendar-event-date-day,
+body.low-dpi .calendar-event-date-month {
+  font-size: 13px;
+}
+
+body.low-dpi .header-button {
+  font-size: 13px;
+}
+
+body.low-dpi .next-event-label {
+  font-size: 12px;
+}
+
+body.low-dpi .next-event-time,
+body.low-dpi .next-event-location {
+  font-size: 13px;
+}
+
+body.low-dpi #bubble-message {
+  font-weight: 400;
+}
+
+body.low-dpi .diag-key,
+body.low-dpi .diag-val {
+  font-size: 14px;
 }
