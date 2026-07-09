@@ -628,35 +628,17 @@ requestAnimationFrame(() => {
 	}, 2500);
 });
 
-// Mouse parallax
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-	let rafId = 0;
-	document.addEventListener('mousemove', (e) => {
-		if (document.activeElement?.tagName === 'INPUT') return;
-		const cx = window.innerWidth / 2;
-		const cy = window.innerHeight / 2;
-		const mx = ((e.clientX - cx) / cx).toFixed(3);
-		const my = ((e.clientY - cy) / cy).toFixed(3);
-		if (!rafId) {
-			rafId = requestAnimationFrame(() => {
-				document.documentElement.style.setProperty('--mx', mx);
-				document.documentElement.style.setProperty('--my', my);
-				rafId = 0;
-			});
-		}
-	});
-}
-
 // Particle field
 (function initParticles() {
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 	const canvas = document.getElementById('particle-canvas');
 	if (!canvas) return;
 	const ctx = canvas.getContext('2d');
-	const COLORS = ['#99A3EB', '#00FFF2', '#E018A3'];
+	const COLORS = ['#99A3EB', '#00FFF2'];
 	const DOT_COUNT = 50;
 	const LINE_DIST = 150;
 	const dots = [];
+	let particleEnabled = true;
 
 	function resize() {
 		canvas.width = window.innerWidth;
@@ -683,7 +665,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 	}
 
 	function tick() {
-		if (!shouldShow()) {
+		if (!shouldShow() || !particleEnabled) {
 			canvas.style.display = 'none';
 			requestAnimationFrame(tick);
 			return;
@@ -749,4 +731,20 @@ authDemoBtn.addEventListener('click', () => {
 	}, 1500);
 });
 optionsContainer.appendChild(authDemoBtn);
+
+// Particle toggle
+const particleToggle = document.createElement('input');
+particleToggle.type = 'checkbox';
+particleToggle.id = 'particle-toggle';
+particleToggle.checked = true;
+particleToggle.style.marginLeft = '12px';
+const particleLabel = document.createElement('label');
+particleLabel.textContent = 'Particles';
+particleLabel.htmlFor = 'particle-toggle';
+particleLabel.style.marginLeft = '4px';
+particleToggle.addEventListener('change', () => {
+	particleEnabled = particleToggle.checked;
+});
+optionsContainer.appendChild(particleToggle);
+optionsContainer.appendChild(particleLabel);
 

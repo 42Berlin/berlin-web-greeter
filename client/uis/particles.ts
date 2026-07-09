@@ -8,7 +8,7 @@ interface Dot {
 	opacity: number;
 }
 
-const COLORS = ['#99A3EB', '#00FFF2', '#E018A3'];
+const COLORS = ['#99A3EB', '#00FFF2'];
 const DOT_COUNT = 50;
 const LINE_DIST = 150;
 

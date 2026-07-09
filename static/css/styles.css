@@ -406,14 +406,18 @@ footer br::after {
 }
 
 #brightness-slider {
-  display: none; /* shown inline (in the bar) when #brightness-control has .open */
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
   width: 120px;
   vertical-align: middle;
   accent-color: var(--c-cyan);
+  transition: max-width 200ms ease-out, opacity 150ms ease-out 50ms;
 }
 
 #brightness-control.open #brightness-slider {
-  display: inline-block;
+  max-width: 120px;
+  opacity: 1;
 }
 
 /* Network status dot (green online / red offline) */
@@ -1232,14 +1236,51 @@ body.low-dpi .diag-val {
   display: none;
 }
 
-/* Parallax depth layers (driven by --mx/--my from parallax.ts or debug.js) */
-#gradient-bg {
-  transform: translate(calc(var(--mx, 0) * -20px), calc(var(--my, 0) * -20px));
-  will-change: transform;
+/* ── Transition animations for interactive elements ── */
+
+/* Dialog entrance (confirm dialog, event detail dialog) */
+@keyframes dialogEnter {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-#logo-wrapper,
-main {
-  transform: translate(calc(var(--mx, 0) * 5px), calc(var(--my, 0) * 5px));
-  will-change: transform;
+.confirm-dialog,
+dialog.calendar-event-dialog {
+  animation: dialogEnter 200ms ease-out;
+}
+
+.confirm-dialog-content,
+.event-dialog-contents {
+  animation: dialogEnter 250ms ease-out 50ms backwards;
+}
+
+/* Offline message slides in from top */
+#offline-message[style*="flex"] {
+  animation: dialogEnter 300ms ease-out;
+}
+
+/* Maintenance notice fades in */
+#maintenance[style*="flex"] {
+  animation: dialogEnter 300ms ease-out;
+}
+
+/* Form appearance (login/lock/exam/maintenance switching) */
+main > form[style*="block"],
+main > #maintenance[style*="flex"] {
+  animation: dialogEnter 250ms ease-out;
+}
+
+/* Next-event banner appears with a gentle slide */
+#next-event[style*="flex"] {
+  animation: dialogEnter 250ms ease-out;
+}
+
+/* Bubble message subtle fade-in */
+#bubble-message:not(:empty) {
+  animation: bubbleFadeIn 400ms ease-out;
+}
+
+@keyframes bubbleFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

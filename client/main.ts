@@ -3,7 +3,6 @@ import { Data } from './data';
 import { UI } from './ui';
 import { Authenticator } from './auth';
 import { Idler } from './idler';
-import { Parallax } from './uis/parallax';
 import { ParticleField } from './uis/particles';
 
 declare global {
@@ -168,7 +167,6 @@ async function initGreeter(): Promise<void> {
 	// Set up the topbar brightness control (only if this machine supports it)
 	setupBrightnessControl();
 
-	new Parallax(window.ui.isLockScreen);
 	new ParticleField(window.ui.isLockScreen);
 
 	// Add reboot keybind to reboot on ctrl+alt+del
@@ -222,6 +220,6 @@ window.addEventListener("GreeterReady", () => {
 		document.body.classList.add('boot-active');
 		setTimeout(() => {
 			document.body.classList.remove('boot-active');
-		}, 2500);
+		}, 2000);
 	});
 });
