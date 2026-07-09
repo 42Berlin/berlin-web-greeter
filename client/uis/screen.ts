@@ -19,9 +19,6 @@ export interface UILockScreenElements {
 
 export interface UIExamModeElements {
 	form: HTMLFormElement;
-	examProjectsText: HTMLSpanElement;
-	examStartText: HTMLSpanElement;
-	examEndText: HTMLSpanElement;
 	examStartButton: HTMLButtonElement;
 }
 

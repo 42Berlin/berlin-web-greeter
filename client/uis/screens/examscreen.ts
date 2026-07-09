@@ -39,9 +39,6 @@ export class ExamModeUI extends UIScreen {
 
 		this._form = {
 			form: document.getElementById('exam-form') as HTMLFormElement,
-			examProjectsText: document.getElementById('exam-mode-projects') as HTMLSpanElement,
-			examStartText: document.getElementById('exam-mode-start') as HTMLSpanElement,
-			examEndText: document.getElementById('exam-mode-end') as HTMLSpanElement,
 			examStartButton: document.getElementById('exam-mode-start-button') as HTMLButtonElement,
 		} as UIExamModeElements;
 
@@ -56,6 +53,7 @@ export class ExamModeUI extends UIScreen {
 		if (exams.length === 0) {
 			return;
 		}
+		document.body.classList.add('exam-mode');
 		this._examMode = true;
 		this._examIds = exams.map((exam) => exam.id);
 		this._populateData(exams);
@@ -68,6 +66,7 @@ export class ExamModeUI extends UIScreen {
 	 */
 	public disableExamMode(): void {
 		this._examMode = false;
+		document.body.classList.remove('exam-mode');
 		this._examIds = [];
 		this._populateData([]);
 		this.hideForm();
@@ -101,50 +100,8 @@ export class ExamModeUI extends UIScreen {
 	}
 
 	private _populateData(examsToPopulate: ExamForHost[]): void {
-		const form = this._form as UIExamModeElements;
-
-		if (examsToPopulate.length === 0) {
-			// Unset text that states which exams can be started today
-			form.examProjectsText.innerText = '';
-			form.examStartText.innerText = 'unknown';
-			form.examEndText.innerText = 'unknown';
-		}
-		else {
-			// Find all exams in the data.json file that match the ids in the exams variable
-			const exams = window.data.dataJson?.exams.filter((exam) => examsToPopulate.some((examToPopulate) => exam.id === examToPopulate.id));
-
-			if (exams === undefined) {
-				console.error('Failed to find exams in data.json');
-				window.ui.setDebugInfo('Failed to find exams in data.json');
-				return;
-			}
-
-			// Find the earliest start time for an exam that should be displayed right now
-			const earliestExam = exams.reduce((earliest, exam) => {
-				const beginAt = new Date(exam.begin_at);
-				if (earliest === null || beginAt < earliest) {
-					return beginAt;
-				}
-				return earliest;
-			}, new Date(exams[0].begin_at));
-
-			// Find the latest end time for an exam that should be displayed right now
-			const latestExam = exams.reduce((latest, exam) => {
-				const endAt = new Date(exam.end_at);
-				if (latest === null || endAt > latest) {
-					return endAt;
-				}
-				return latest;
-			}, new Date(exams[0].end_at));
-
-			// Combine all possible projects for exams that can be started right now
-			const projectsText = exams.flatMap((exam) => exam.projects.map((project) => project.name)).join(', ');
-
-			// Display the projects and the time range in which the exams can be started
-			form.examProjectsText.innerText = projectsText;
-			form.examStartText.innerText = earliestExam.toLocaleTimeString("en-NL", { hour: '2-digit', minute: '2-digit' });
-			form.examEndText.innerText = latestExam.toLocaleTimeString("en-NL", { hour: '2-digit', minute: '2-digit' });
-		}
+		// No dynamic data to populate — the exam form is static text now.
+		// Kept as a no-op for the enable/disable lifecycle.
 	}
 
 	// Returns true if the exam-start button is disabled, false otherwise

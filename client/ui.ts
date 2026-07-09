@@ -78,7 +78,6 @@ export class UI {
 				this.setMessage(data.message);
 				this.setBubbleMessage(data.bubble_message);
 				this.toggleBackgroundVideo(data.background_video);
-				this._examModeDisabled = data.mode === "exam" ? false : true;
 			}
 		});
 		// Set message now
@@ -86,7 +85,6 @@ export class UI {
 			this.setMessage(data.dataJson.message);
 			this.setBubbleMessage(data.dataJson.bubble_message);
 			this.toggleBackgroundVideo(data.dataJson.background_video);
-			this._examModeDisabled = data.dataJson.mode === "exam" ? false : true;
 		}
 
 		this._wallpaper = new WallpaperUI(this._isLockScreen);
@@ -200,6 +198,9 @@ export class UI {
 			return false;
 		}
 
+		// Mode "exam" in berlin.conf: always show the exam screen as the default
+		const modeIsExam = window.data.dataJson.mode === "exam";
+
 		// Get exams that are starting soon
 		const examsForHost: ExamForHost[] = window.data.dataJson.exams_for_host;
 		const ongoingExams = examsForHost.filter((exam) => {
@@ -210,7 +211,9 @@ export class UI {
 			return now >= beginExamModeAt && now < endAt;
 		});
 
-		if (!this._examModeDisabled && ongoingExams.length > 0) {
+		// mode=exam in berlin.conf: always show exam screen (bypasses admin override)
+		// Automatic checker: show exam screen only if not admin-overridden and ongoing exams found
+		if (modeIsExam || (!this._examModeDisabled && ongoingExams.length > 0)) {
 			// Only set exam mode if the exam that is starting soon is not already in the list of exam ids displayed in exam mode
 			if (!this._examModeScreen?.examMode || !ongoingExams.some((exam) => this._examModeScreen?.examIds.includes(exam.id))) {
 				console.log("Activating exam mode login UI");

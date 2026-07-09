@@ -27,9 +27,6 @@ if (brightnessControl) {
 	});
 }
 
-const examModeProjects = document.getElementById('exam-mode-projects');
-examModeProjects.innerText = 'Exam Rank 00, Exam Rank 01, Exam Rank 02, non-existing debug exams';
-
 const lockedAgo = document.getElementById('active-user-session-locked-ago');
 lockedAgo.innerText = 'Automated logout in 42 minutes';
 
@@ -65,6 +62,7 @@ function switchScreen(screenId) {
 
 		logo.style.display = (screenId === 'lock-form') ? 'none' : 'block';
 		document.body.classList.toggle('lock-screen', screenId === 'lock-form');
+		document.body.classList.toggle('exam-mode', screenId === 'exam-form');
 
 		// Show/hide header buttons based on screen
 		updateHeaderButtonsForScreen(screenId);

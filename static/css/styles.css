@@ -838,6 +838,12 @@ form h3 {
   text-shadow: var(--text-shadow);
 }
 
+/* Exam title: larger, centered */
+#exam-mode-title {
+  font-size: 1.6rem;
+  margin-bottom: calc(var(--padding) * 3);
+}
+
 /* user login name (terminal style: monospace + lilac accent) */
 form h4 {
   font-weight: normal;
@@ -902,7 +908,14 @@ aside {
 }
 
 /* Hide the event list entirely on the lock screen for a clean look */
-body.lock-screen aside {
+body.lock-screen aside,
+body.exam-mode aside {
+  display: none;
+}
+
+/* Hide bubble message and tech team message in exam mode for a clean look */
+body.exam-mode #bubble-message-wrapper,
+body.exam-mode #message-wrapper {
   display: none;
 }
 
