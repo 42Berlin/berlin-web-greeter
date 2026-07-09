@@ -30,6 +30,18 @@ if (brightnessControl) {
 const lockedAgo = document.getElementById('active-user-session-locked-ago');
 lockedAgo.innerText = 'Automated logout in 42 minutes';
 
+// Lock screen tips (shown in bubble message on lock screen)
+const LOCK_SCREEN_TIPS = [
+	'Did you know you can get a mouse/keyboard replacement at frontdesk?',
+	'Did you know you can buy extra storage in the intra shop?',
+	'Did you know you can borrow a monitor from the frontdesk?',
+	'Did you know you can report issues on the intra forum?',
+	'Did you know you can join study groups on the intra calendar?',
+	'Did you know you can book a meeting room on the intra?',
+	'Did you know you can get help from the Bocal team during office hours?',
+	'Did you know you can find coding resources on the intra wiki?',
+];
+
 // Show the default user avatar on the lock screen (the real UI sets this from the user's .face)
 document.getElementById('active-user-session-avatar').src = 'assets/default-user.png';
 
@@ -63,6 +75,17 @@ function switchScreen(screenId) {
 		logo.style.display = (screenId === 'lock-form') ? 'none' : 'block';
 		document.body.classList.toggle('lock-screen', screenId === 'lock-form');
 		document.body.classList.toggle('exam-mode', screenId === 'exam-form');
+
+		// Update bubble message based on screen
+		const bubbleMessage = document.getElementById('bubble-message');
+		if (screenId === 'lock-form') {
+			// Show random tip on lock screen
+			const randomTip = LOCK_SCREEN_TIPS[Math.floor(Math.random() * LOCK_SCREEN_TIPS.length)];
+			bubbleMessage.innerText = randomTip;
+		} else {
+			// Show berlin.conf message on other screens
+			bubbleMessage.innerText = 'This is a message that will be displayed on the login screen!';
+		}
 
 		// Show/hide header buttons based on screen
 		updateHeaderButtonsForScreen(screenId);
