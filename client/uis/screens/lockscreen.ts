@@ -134,10 +134,8 @@ export class LockScreenUI extends UIScreen {
 			this._setupCapsLockDetection(form.passwordInput);
 		}
 
-		// Setup header reboot button (skip for exam mode)
-		if (!this._isExamMode) {
-			this._setupHeaderRebootButton();
-		}
+// Reboot button is hidden on lock screen (same as exam mode)
+	// Ctrl+Alt+Del keybind still works for admin reboot
 	}
 
 	// Returns true if the login button is disabled, false otherwise

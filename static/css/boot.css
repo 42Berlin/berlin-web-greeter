@@ -36,18 +36,19 @@ body.boot-active footer { animation: bootFadeIn 600ms ease-out forwards; }
 body.boot-active aside { animation: bootFadeIn 600ms ease-out forwards; }
 
 /* Phase 3: after fade completes, cascade event list from the right */
+/* "both" fill-mode keeps elements hidden during the animation delay */
 body.boot-active #next-event {
-  animation: bootSlideInRight 400ms ease-out 700ms forwards;
+  animation: bootSlideInRight 400ms ease-out 700ms both;
 }
 
-body.boot-active .calendar-event:nth-child(1) { animation: bootSlideInRight 300ms ease-out 900ms forwards; }
-body.boot-active .calendar-event:nth-child(2) { animation: bootSlideInRight 300ms ease-out 1000ms forwards; }
-body.boot-active .calendar-event:nth-child(3) { animation: bootSlideInRight 300ms ease-out 1100ms forwards; }
-body.boot-active .calendar-event:nth-child(4) { animation: bootSlideInRight 300ms ease-out 1200ms forwards; }
-body.boot-active .calendar-event:nth-child(5) { animation: bootSlideInRight 300ms ease-out 1300ms forwards; }
-body.boot-active .calendar-event:nth-child(6) { animation: bootSlideInRight 300ms ease-out 1400ms forwards; }
-body.boot-active .calendar-event:nth-child(7) { animation: bootSlideInRight 300ms ease-out 1500ms forwards; }
-body.boot-active .calendar-event:nth-child(8) { animation: bootSlideInRight 300ms ease-out 1600ms forwards; }
+body.boot-active .calendar-event:nth-child(1) { animation: bootSlideInRight 300ms ease-out 900ms both; }
+body.boot-active .calendar-event:nth-child(2) { animation: bootSlideInRight 300ms ease-out 1000ms both; }
+body.boot-active .calendar-event:nth-child(3) { animation: bootSlideInRight 300ms ease-out 1100ms both; }
+body.boot-active .calendar-event:nth-child(4) { animation: bootSlideInRight 300ms ease-out 1200ms both; }
+body.boot-active .calendar-event:nth-child(5) { animation: bootSlideInRight 300ms ease-out 1300ms both; }
+body.boot-active .calendar-event:nth-child(6) { animation: bootSlideInRight 300ms ease-out 1400ms both; }
+body.boot-active .calendar-event:nth-child(7) { animation: bootSlideInRight 300ms ease-out 1500ms both; }
+body.boot-active .calendar-event:nth-child(8) { animation: bootSlideInRight 300ms ease-out 1600ms both; }
 
 /* Lock screen: no event list, just fade in */
 body.boot-pending.lock-screen #next-event,

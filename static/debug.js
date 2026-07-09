@@ -550,14 +550,13 @@ function updateHeaderButtonsForScreen(screenId) {
 	if (rebootButton) rebootButton.style.display = 'none';
 	if (logoutButton) logoutButton.style.display = 'none';
 	
-	// Show reboot button for both login and lock screens
-	if (screenId === 'login-form' || screenId === 'lock-form') {
+	// Show reboot button only on login screen (hidden on lock and exam)
+	if (screenId === 'login-form') {
 		if (rebootButton) {
 			rebootButton.style.display = 'inline-block';
-			console.log('Showing reboot button for', screenId);
 		}
 	}
-	// No buttons shown for exam mode
+	// No buttons shown for lock screen or exam mode
 }
 
 // Custom confirmation dialog function
@@ -625,7 +624,7 @@ requestAnimationFrame(() => {
 	document.body.classList.add('boot-active');
 	setTimeout(() => {
 		document.body.classList.remove('boot-active');
-	}, 2500);
+	}, 2000);
 });
 
 // Particle field
@@ -702,6 +701,22 @@ requestAnimationFrame(() => {
 		requestAnimationFrame(tick);
 	}
 	requestAnimationFrame(tick);
+
+	// Particle toggle
+	const particleToggle = document.createElement('input');
+	particleToggle.type = 'checkbox';
+	particleToggle.id = 'particle-toggle';
+	particleToggle.checked = true;
+	particleToggle.style.marginLeft = '12px';
+	const particleLabel = document.createElement('label');
+	particleLabel.textContent = 'Particles';
+	particleLabel.htmlFor = 'particle-toggle';
+	particleLabel.style.marginLeft = '4px';
+	particleToggle.addEventListener('change', () => {
+		particleEnabled = particleToggle.checked;
+	});
+	optionsContainer.appendChild(particleToggle);
+	optionsContainer.appendChild(particleLabel);
 })();
 
 // Auth choreography demo button
@@ -731,20 +746,4 @@ authDemoBtn.addEventListener('click', () => {
 	}, 1500);
 });
 optionsContainer.appendChild(authDemoBtn);
-
-// Particle toggle
-const particleToggle = document.createElement('input');
-particleToggle.type = 'checkbox';
-particleToggle.id = 'particle-toggle';
-particleToggle.checked = true;
-particleToggle.style.marginLeft = '12px';
-const particleLabel = document.createElement('label');
-particleLabel.textContent = 'Particles';
-particleLabel.htmlFor = 'particle-toggle';
-particleLabel.style.marginLeft = '4px';
-particleToggle.addEventListener('change', () => {
-	particleEnabled = particleToggle.checked;
-});
-optionsContainer.appendChild(particleToggle);
-optionsContainer.appendChild(particleLabel);
 
