@@ -841,7 +841,14 @@ form h3 {
 /* Exam title: larger, centered */
 #exam-mode-title {
   font-size: 1.6rem;
-  margin-bottom: calc(var(--padding) * 3);
+  margin-bottom: calc(var(--padding) * 2);
+}
+
+#exam-mode-subtitle {
+  font-family: var(--font-code);
+  font-size: 1rem;
+  color: var(--c-cyan);
+  margin: 0 0 calc(var(--padding) * 3) 0;
 }
 
 /* user login name (terminal style: monospace + lilac accent) */
